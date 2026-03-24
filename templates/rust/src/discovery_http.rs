@@ -1,0 +1,197 @@
+/*!
+HttpDiscovery — centralised discovery adapter (optional extension).
+
+Connects to any REST-based agent registry that implements the Sentrix
+centralised discovery API. This is NOT the default; LocalDiscovery and
+GossipDiscovery are preferred.
+
+The server must expose:
+  POST   /agents           → register
+  DELETE /agents/{id}      → unregister
+  GET    /agents?cap=X     → query by capability
+  GET    /agents           → list all
+  PUT    /agents/{id}/hb   → heartbeat
+
+Deps (Cargo.toml): reqwest, serde_json, tokio
+*/
+
+use crate::discovery::{IAgentDiscovery, DiscoveryEntry};
+use async_trait::async_trait;
+use reqwest::Client;
+use serde_json::{json, Value};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+
+pub struct HttpDiscovery {
+    base_url:     String,
+    client:       Client,
+    heartbeat_ms: u64,
+    /// task handles keyed by agent_id (aborted on unregister)
+    hb_tasks:     Arc<Mutex<HashMap<String, tokio::task::JoinHandle<()>>>>,
+}
+
+impl HttpDiscovery {
+    pub fn new(base_url: impl Into<String>) -> Self {
+        Self::with_options(base_url, None, 5_000, 30_000)
+    }
+
+    pub fn with_options(
+        base_url: impl Into<String>,
+        api_key: Option<&str>,
+        timeout_ms: u64,
+        heartbeat_ms: u64,
+    ) -> Self {
+        let mut headers = reqwest::header::HeaderMap::new();
+        if let Some(key) = api_key {
+            headers.insert("X-Api-Key", key.parse().unwrap());
+        }
+        let client = Client::builder()
+            .default_headers(headers)
+            .timeout(Duration::from_millis(timeout_ms))
+            .build()
+            .expect("failed to build HTTP client");
+
+        Self {
+            base_url:     base_url.into().trim_end_matches('/').to_string(),
+            client,
+            heartbeat_ms,
+            hb_tasks:     Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    /// Create from the SENTRIX_DISCOVERY_URL environment variable.
+    pub fn from_env() -> Option<Self> {
+        std::env::var("SENTRIX_DISCOVERY_URL").ok().map(|url| {
+            let key = std::env::var("SENTRIX_DISCOVERY_KEY").ok();
+            Self::with_options(url, key.as_deref(), 5_000, 30_000)
+        })
+    }
+
+    fn url(&self, path: &str) -> String {
+        format!("{}{}", self.base_url, path)
+    }
+}
+
+#[async_trait]
+impl IAgentDiscovery for HttpDiscovery {
+    async fn register(&self, entry: DiscoveryEntry) -> Result<(), Box<dyn std::error::Error>> {
+        let body = serde_json::to_value(&entry)?;
+        self.client.post(self.url("/agents"))
+            .json(&body)
+            .send().await?
+            .error_for_status()?;
+
+        // Start heartbeat task
+        if self.heartbeat_ms > 0 {
+            let client  = self.client.clone();
+            let url     = self.url(&format!("/agents/{}/hb", urlencoding::encode(&entry.agent_id)));
+            let ms      = self.heartbeat_ms;
+            let handle  = tokio::spawn(async move {
+                loop {
+                    tokio::time::sleep(Duration::from_millis(ms)).await;
+                    if let Err(e) = client.put(&url).send().await {
+                        eprintln!("[HttpDiscovery] heartbeat failed: {e}");
+                    }
+                }
+            });
+            self.hb_tasks.lock().unwrap().insert(entry.agent_id.clone(), handle);
+        }
+
+        println!("[HttpDiscovery] Registered: {} → {}", entry.agent_id, self.base_url);
+        Ok(())
+    }
+
+    async fn unregister(&self, agent_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+        // Abort heartbeat
+        if let Some(handle) = self.hb_tasks.lock().unwrap().remove(agent_id) {
+            handle.abort();
+        }
+        self.client
+            .delete(self.url(&format!("/agents/{}", urlencoding::encode(agent_id))))
+            .send().await?
+            .error_for_status()?;
+        Ok(())
+    }
+
+    async fn query(&self, capability: &str) -> Result<Vec<DiscoveryEntry>, Box<dyn std::error::Error>> {
+        let entries: Vec<DiscoveryEntry> = self.client
+            .get(self.url(&format!("/agents?cap={}", urlencoding::encode(capability))))
+            .send().await?
+            .error_for_status()?
+            .json().await?;
+        Ok(entries)
+    }
+
+    async fn list_all(&self) -> Result<Vec<DiscoveryEntry>, Box<dyn std::error::Error>> {
+        let entries: Vec<DiscoveryEntry> = self.client
+            .get(self.url("/agents"))
+            .send().await?
+            .error_for_status()?
+            .json().await?;
+        Ok(entries)
+    }
+
+    async fn heartbeat(&self, agent_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+        self.client
+            .put(self.url(&format!("/agents/{}/hb", urlencoding::encode(agent_id))))
+            .send().await?
+            .error_for_status()?;
+        Ok(())
+    }
+}
+
+// ── DiscoveryFactory ──────────────────────────────────────────────────────────
+
+use crate::discovery::LocalDiscovery;
+
+pub enum AnyDiscovery {
+    Local(LocalDiscovery),
+    Http(HttpDiscovery),
+}
+
+#[async_trait]
+impl IAgentDiscovery for AnyDiscovery {
+    async fn register(&self, e: DiscoveryEntry) -> Result<(), Box<dyn std::error::Error>> {
+        match self { Self::Local(d) => d.register(e).await, Self::Http(d) => d.register(e).await }
+    }
+    async fn unregister(&self, id: &str) -> Result<(), Box<dyn std::error::Error>> {
+        match self { Self::Local(d) => d.unregister(id).await, Self::Http(d) => d.unregister(id).await }
+    }
+    async fn query(&self, cap: &str) -> Result<Vec<DiscoveryEntry>, Box<dyn std::error::Error>> {
+        match self { Self::Local(d) => d.query(cap).await, Self::Http(d) => d.query(cap).await }
+    }
+    async fn list_all(&self) -> Result<Vec<DiscoveryEntry>, Box<dyn std::error::Error>> {
+        match self { Self::Local(d) => d.list_all().await, Self::Http(d) => d.list_all().await }
+    }
+    async fn heartbeat(&self, id: &str) -> Result<(), Box<dyn std::error::Error>> {
+        match self { Self::Local(d) => d.heartbeat(id).await, Self::Http(d) => d.heartbeat(id).await }
+    }
+}
+
+/// Build a discovery backend from environment or explicit config.
+///
+/// ```rust
+/// let registry = DiscoveryFactory::from_env()
+///   .unwrap_or_else(|| DiscoveryFactory::local());
+/// ```
+pub struct DiscoveryFactory;
+
+impl DiscoveryFactory {
+    /// Use in-memory local registry (default / dev).
+    pub fn local() -> AnyDiscovery {
+        AnyDiscovery::Local(LocalDiscovery::default())
+    }
+
+    /// Use centralised HTTP registry.
+    pub fn http(base_url: impl Into<String>) -> AnyDiscovery {
+        AnyDiscovery::Http(HttpDiscovery::new(base_url))
+    }
+
+    /// Auto-select: HTTP if SENTRIX_DISCOVERY_URL is set, else Local.
+    pub fn from_env() -> AnyDiscovery {
+        HttpDiscovery::from_env()
+            .map(AnyDiscovery::Http)
+            .unwrap_or_else(|| AnyDiscovery::Local(LocalDiscovery::default()))
+    }
+}

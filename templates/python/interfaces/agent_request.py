@@ -1,0 +1,36 @@
+"""
+Standard request envelope for all agent-to-agent calls.
+"""
+
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional
+
+
+@dataclass
+class PaymentInfo:
+    type: str           # "oneshot" | "stream" | "subscription"
+    token: str          # e.g. "USDC", "ETH"
+    amount: str         # human-readable, e.g. "0.001"
+    tx_hash: Optional[str] = None
+
+
+@dataclass
+class AgentRequest:
+    request_id: str
+    from_id: str                              # caller agent ID or wallet address
+    capability: str
+    payload: Dict[str, Any] = field(default_factory=dict)
+    signature: Optional[str] = None          # EIP-712 over this envelope
+    timestamp: Optional[int] = None          # Unix ms — rejects stale requests
+    session_key: Optional[str] = None        # Delegated execution session key
+    payment: Optional[PaymentInfo] = None
+
+    def to_dict(self) -> dict:
+        return {
+            "requestId":  self.request_id,
+            "from":       self.from_id,
+            "capability": self.capability,
+            "payload":    self.payload,
+            "signature":  self.signature,
+            "timestamp":  self.timestamp,
+        }
