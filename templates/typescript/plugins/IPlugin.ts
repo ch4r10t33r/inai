@@ -205,4 +205,37 @@ export class WrappedAgent<TAgent, TNativeInput, TNativeOutput> implements IAgent
     const registry = DiscoveryFactory.create({ type: (this.plugin.config.discoveryType as any) });
     await registry.unregister(this.agentId);
   }
+
+  // ─── ANR / Identity exposure ───────────────────────────────────────────────
+
+  getAnr(): DiscoveryEntry {
+    return {
+      agentId:      this.agentId,
+      name:         this.plugin.config.name,
+      owner:        this.owner ?? 'anonymous',
+      capabilities: this.getCapabilities(),
+      network: {
+        protocol: (this.plugin.config.protocol ?? 'http') as any,
+        host:     this.plugin.config.host     ?? 'localhost',
+        port:     this.plugin.config.port     ?? 8080,
+        tls:      this.plugin.config.tls      ?? false,
+      },
+      health: { status: 'healthy', lastHeartbeat: new Date().toISOString(), uptimeSeconds: 0 },
+      registeredAt: new Date().toISOString(),
+      metadataUri:  this.metadataUri,
+    };
+  }
+
+  async getPeerId(): Promise<string | null> {
+    const signingKey = this.plugin.config.signingKey;
+    if (!signingKey) return null;
+    try {
+      const { peerIdFromAnrKey } = await import('../discovery/libp2p/PeerIdFromAnr');
+      const raw    = Buffer.from(signingKey.replace(/^0x/, ''), 'hex');
+      const peerId = await peerIdFromAnrKey(new Uint8Array(raw));
+      return peerId.toString();
+    } catch {
+      return null;
+    }
+  }
 }

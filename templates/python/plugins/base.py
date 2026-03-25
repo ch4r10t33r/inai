@@ -27,6 +27,7 @@ from typing import Any, Generic, Optional, TypeVar
 
 from interfaces import IAgent, AgentRequest, AgentResponse
 from interfaces.iagent_discovery import DiscoveryEntry, NetworkInfo, HealthStatus
+from identity.provider import _b58encode
 from datetime import datetime, timezone
 
 TAgent = TypeVar("TAgent")   # framework-native agent type
@@ -320,3 +321,51 @@ class WrappedAgent(IAgent, Generic[TAgent]):
             http_base_url=self.config.discovery_url,
         )
         await registry.unregister(self.agent_id)
+
+    # ── ANR / Identity exposure ────────────────────────────────────────────
+
+    def get_anr(self) -> DiscoveryEntry:
+        """Return the full ANR (Agent Network Record) for this agent."""
+        return DiscoveryEntry(
+            agent_id=self.agent_id,
+            name=self.config.name,
+            owner=self.config.owner,
+            capabilities=self.get_capabilities(),
+            network=NetworkInfo(
+                protocol=self.config.protocol,
+                host=self.config.host,
+                port=self.config.port,
+                tls=self.config.tls,
+            ),
+            health=HealthStatus(
+                status="healthy",
+                last_heartbeat=datetime.now(timezone.utc).isoformat(),
+            ),
+            registered_at=datetime.now(timezone.utc).isoformat(),
+            metadata_uri=self.metadata_uri,
+        )
+
+    def get_peer_id(self) -> Optional[str]:
+        """
+        Return the libp2p PeerId derived from this agent's secp256k1 ANR key.
+        Returns None if no signing key is configured (anonymous mode).
+        """
+        if not self.config.signing_key:
+            return None
+        try:
+            from coincurve import PublicKey
+            import hashlib
+            key = bytes.fromhex(self.config.signing_key)
+            pub_compressed = PublicKey.from_secret(key).format(compressed=True)  # 33 bytes
+            # Protobuf PublicKey: field 1 (KeyType=Secp256k1=231), field 2 (bytes=compressed pubkey)
+            # \x08=field-1-varint \xe7\x01=231 \x12=field-2-bytes \x21=33-length
+            proto_pubkey = b'\x08\xe7\x01\x12\x21' + pub_compressed
+            digest = hashlib.sha256(proto_pubkey).digest()
+            multihash = b'\x12\x20' + digest  # sha2-256 multihash prefix
+            return _b58encode(multihash)
+        except ImportError:
+            import warnings
+            warnings.warn("get_peer_id() requires coincurve: pip install coincurve")
+            return None
+        except Exception:
+            return None

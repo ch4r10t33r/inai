@@ -1,5 +1,6 @@
-import { AgentRequest } from './IAgentRequest';
-import { AgentResponse } from './IAgentResponse';
+import { AgentRequest }   from './IAgentRequest';
+import { AgentResponse }  from './IAgentResponse';
+import { DiscoveryEntry } from './IAgentDiscovery';
 
 /**
  * Sentrix agent interface.
@@ -47,6 +48,27 @@ export interface IAgent {
   // ─── Delegation / permissions (optional) ─────────────────────────────────
   /** Return true if `caller` is permitted to invoke `capability` */
   checkPermission?(caller: string, capability: string): Promise<boolean>;
+
+  // ─── ANR / Identity exposure ──────────────────────────────────────────────
+  /**
+   * Return the full ANR (Agent Network Record) for this agent.
+   *
+   * The ANR is the authoritative self-description of the agent on the mesh:
+   * its identity, capabilities, network endpoint, and health status.
+   * Callers can use this to inspect a live agent without querying the
+   * discovery layer.
+   */
+  getAnr(): DiscoveryEntry;
+
+  /**
+   * Return the libp2p PeerId derived from this agent's secp256k1 ANR key.
+   *
+   * The PeerId is derived from the same key used to sign ANR records —
+   * one keypair, one identity across both the ANR layer and the P2P transport.
+   *
+   * Returns null for anonymous agents (no signing key configured).
+   */
+  getPeerId(): Promise<string | null>;
 
   // ─── Signing (optional) ───────────────────────────────────────────────────
   /** EIP-712 compatible message signing */

@@ -1,6 +1,7 @@
 import { IAgent, AgentMetadata } from '../interfaces/IAgent';
-import { AgentRequest } from '../interfaces/IAgentRequest';
-import { AgentResponse } from '../interfaces/IAgentResponse';
+import { AgentRequest }           from '../interfaces/IAgentRequest';
+import { AgentResponse }          from '../interfaces/IAgentResponse';
+import { DiscoveryEntry }         from '../interfaces/IAgentDiscovery';
 
 /**
  * ExampleAgent — starter template.
@@ -79,6 +80,25 @@ export class ExampleAgent implements IAgent {
   async unregisterDiscovery(): Promise<void> {
     const { LocalDiscovery } = await import('../discovery/LocalDiscovery');
     await LocalDiscovery.getInstance().unregister(this.agentId);
+  }
+
+  // ─── ANR / Identity exposure ──────────────────────────────────────────────
+  getAnr(): DiscoveryEntry {
+    return {
+      agentId:      this.agentId,
+      name:         this.metadata.name,
+      owner:        this.owner,
+      capabilities: this.getCapabilities(),
+      network:      { protocol: 'http', host: 'localhost', port: 8080, tls: false },
+      health:       { status: 'healthy', lastHeartbeat: new Date().toISOString(), uptimeSeconds: 0 },
+      registeredAt: new Date().toISOString(),
+      metadataUri:  this.metadataUri,
+    };
+  }
+
+  async getPeerId(): Promise<string | null> {
+    // ExampleAgent has no signing key — swap for LocalKeystoreIdentity to get a real PeerId.
+    return null;
   }
 
   // ─── Permissions ──────────────────────────────────────────────────────────

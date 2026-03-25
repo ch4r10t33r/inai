@@ -10,11 +10,16 @@ sufficient for signing ANR records and P2P discovery.
 See identity.provider.LocalKeystoreIdentity for the default no-wallet option.
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 from .agent_request import AgentRequest
 from .agent_response import AgentResponse
+
+if TYPE_CHECKING:
+    from .iagent_discovery import DiscoveryEntry
 
 
 @dataclass
@@ -77,6 +82,31 @@ class IAgent(ABC):
     async def check_permission(self, caller: str, capability: str) -> bool:
         """Return True if `caller` is permitted to invoke `capability`."""
         return True  # open by default; override for production
+
+    # ── ANR / Identity exposure ────────────────────────────────────────────
+    @abstractmethod
+    def get_anr(self) -> "DiscoveryEntry":
+        """
+        Return the full ANR (Agent Network Record) for this agent.
+
+        The ANR is the authoritative self-description of the agent on the mesh:
+        its identity, capabilities, network endpoint, and health status.
+        Callers can use this to inspect a live agent without querying the
+        discovery layer.
+        """
+        ...
+
+    def get_peer_id(self) -> Optional[str]:
+        """
+        Return the libp2p PeerId derived from this agent's secp256k1 ANR key.
+
+        The PeerId is derived from the same key used to sign ANR records —
+        one keypair, one identity across both the ANR layer and the P2P
+        transport layer.
+
+        Returns None for anonymous agents (no signing key configured).
+        """
+        return None
 
     # ── Signing (optional) ─────────────────────────────────────────────────
     async def sign_message(self, message: str) -> str:
