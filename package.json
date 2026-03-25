@@ -1,6 +1,6 @@
 {
   "name": "sentrix-cli",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Scaffold P2P-discoverable, DID-native AI agents that interoperate across any framework",
   "bin": {
     "sentrix": "./bin/sentrix.js"
