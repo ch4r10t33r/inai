@@ -17,8 +17,13 @@ export interface AgentRequest {
   timestamp?: number;
   /** Session key if using delegated execution */
   sessionKey?: string;
-  /** Payment info if the capability requires it */
+  /** Legacy payment info field */
   payment?: PaymentInfo;
+  /**
+   * x402 micropayment proof — attached by X402Client on retry after
+   * receiving a `payment_required` response. See addons/x402.
+   */
+  x402?: import('../addons/x402/types').X402Payment;
 }
 
 export interface PaymentInfo {

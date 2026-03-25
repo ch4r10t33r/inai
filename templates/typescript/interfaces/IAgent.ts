@@ -2,15 +2,25 @@ import { AgentRequest } from './IAgentRequest';
 import { AgentResponse } from './IAgentResponse';
 
 /**
- * ERC-8004 compliant agent interface.
+ * Sentrix agent interface.
  * Every Sentrix agent must implement this contract.
+ *
+ * Identity note
+ * ─────────────
+ * `agentId` is required. `owner` is optional — a local secp256k1 key is
+ * sufficient for signed ANR records and P2P discovery without an on-chain
+ * wallet. ERC-8004 on-chain registration remains available as an opt-in.
+ * See identity/IdentityProvider for the LocalKeystoreIdentity default.
  */
 export interface IAgent {
-  // ─── Identity (ERC-8004) ──────────────────────────────────────────────────
-  /** ERC-8004 agent identifier, e.g. "sentrix://agent/0xABC..." */
+  // ─── Identity ─────────────────────────────────────────────────────────────
+  /** Sentrix agent URI, e.g. "sentrix://agent/0xABC..." */
   readonly agentId: string;
-  /** Owning wallet address or contract address */
-  readonly owner: string;
+  /**
+   * Owner identifier — Ethereum address when using ERC-8004 or key-derived
+   * identity; any unique string otherwise. Defaults to "anonymous".
+   */
+  readonly owner?: string;
   /** Optional IPFS / on-chain metadata URI */
   readonly metadataUri?: string;
   /** Human-readable metadata bag */

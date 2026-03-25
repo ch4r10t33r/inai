@@ -38,30 +38,52 @@ TAgent = TypeVar("TAgent")   # framework-native agent type
 class PluginConfig:
     """Configuration shared by all framework plugins."""
 
-    # Identity
+    # ── Identity ──────────────────────────────────────────────────────────────
+    # Use identity_from_config() or an IdentityProvider to populate these.
+    # ERC-8004 on-chain registration is optional — a local key is enough.
+    #
+    #   from identity.provider import LocalKeystoreIdentity
+    #   identity = LocalKeystoreIdentity("my-agent")
+    #   config   = PluginConfig(**identity.to_plugin_config_fields(), port=8080)
+
     agent_id:     str          = "sentrix://agent/unnamed"
-    owner:        str          = "0xYourWalletAddress"
+    owner:        str          = "anonymous"  # wallet address or any identifier
     name:         str          = "UnnamedAgent"
     version:      str          = "0.1.0"
     description:  str          = ""
     tags:         list[str]    = field(default_factory=list)
     metadata_uri: Optional[str] = None
 
-    # Network (where this agent listens)
+    # Identity mode (informational — used by identity helpers)
+    # "anonymous" | "local" | "env" | "raw" | "erc8004"
+    identity_mode: str = "local"
+
+    # ANR signing — 32-byte hex private key (None = unsigned / dev mode)
+    # Populated automatically by IdentityProvider.to_plugin_config_fields()
+    signing_key: Optional[str] = None
+
+    # ── Network (where this agent listens) ────────────────────────────────────
     host:         str  = "localhost"
     port:         int  = 8080
     protocol:     str  = "http"
     tls:          bool = False
 
-    # Discovery
-    discovery_type: str           = "local"   # "local" | "http" | "gossip"
+    # ── Discovery ─────────────────────────────────────────────────────────────
+    discovery_type: str           = "local"   # "local" | "http" | "libp2p"
     discovery_url:  Optional[str] = None
     discovery_key:  Optional[str] = None
 
-    # ANR signing — 32-byte hex private key (None = unsigned / dev mode)
-    signing_key: Optional[str] = None
+    # ── x402 Payments (optional add-on) ───────────────────────────────────────
+    # Map of capability name → CapabilityPricing.
+    # Capabilities not listed are served free of charge.
+    # Import: from addons.x402.types import CapabilityPricing
+    #
+    #   x402_pricing = {
+    #       "premium_search": CapabilityPricing.usdc_base(50, "0xMyWallet"),
+    #   }
+    x402_pricing: dict = field(default_factory=dict)
 
-    # Request / response
+    # ── Request / response ────────────────────────────────────────────────────
     timeout_ms:     int = 30_000
     capability_map: dict[str, str] = field(default_factory=dict)
     """Optional override: { "meshAiCapName": "frameworkToolName" }"""

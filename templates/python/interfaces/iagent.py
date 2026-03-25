@@ -1,6 +1,13 @@
 """
-ERC-8004 compliant agent interface.
+Sentrix agent interface.
 Every Sentrix agent must implement this abstract base class.
+
+Identity note
+─────────────
+``agent_id`` is required; ``owner`` is optional.
+ERC-8004 on-chain registration is not required — a local secp256k1 key is
+sufficient for signing ANR records and P2P discovery.
+See identity.provider.LocalKeystoreIdentity for the default no-wallet option.
 """
 
 from abc import ABC, abstractmethod
@@ -10,11 +17,12 @@ from .agent_response import AgentResponse
 
 
 class IAgent(ABC):
-    # ── ERC-8004 Identity ──────────────────────────────────────────────────
-    agent_id: str       # e.g. "sentrix://agent/0xABC..."
-    owner: str          # Wallet or contract address
+    # ── Identity ───────────────────────────────────────────────────────────
+    agent_id: str                    # e.g. "sentrix://agent/0xABC..."
+    owner: str     = "anonymous"     # Wallet address or arbitrary identifier.
+                                     # Required for ERC-8004; optional otherwise.
     metadata_uri: Optional[str] = None
-    metadata: Optional[dict] = None
+    metadata: Optional[dict]    = None
 
     # ── Capabilities ───────────────────────────────────────────────────────
     @abstractmethod

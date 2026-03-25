@@ -2,8 +2,13 @@
 Standard request envelope for all agent-to-agent calls.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from addons.x402.types import X402Payment
 
 
 @dataclass
@@ -24,6 +29,8 @@ class AgentRequest:
     timestamp: Optional[int] = None          # Unix ms — rejects stale requests
     session_key: Optional[str] = None        # Delegated execution session key
     payment: Optional[PaymentInfo] = None
+    # ── x402 micropayment proof (set by X402Client on retry) ──────────────
+    x402: Optional[Any] = None               # X402Payment — see addons/x402
 
     def to_dict(self) -> dict:
         return {

@@ -13,6 +13,7 @@ interface CreateOptions {
   lang?:         string;
   capabilities:  string;
   framework:     Framework;
+  addon?:        string;   // e.g. 'x402'
 }
 
 type TemplateFn = (name: string, caps: string[]) => string;
@@ -673,6 +674,17 @@ export async function createCommand(
     console.log(chalk.dim(`    ${hint}`));
   }
 
+  // ── x402 add-on hint ────────────────────────────────────────────────────────
+  if (options.addon === 'x402') {
+    const x402Snippet = lang === 'python'
+      ? `\nfrom addons.x402 import X402ServerMixin, CapabilityPricing\n# Mixin: class ${agentName}(X402ServerMixin, IAgent):\n#   x402_pricing = { '${caps[0] ?? 'myCapability'}': CapabilityPricing.usdc_base(50, '0xMyWallet') }`
+      : `\nimport { withX402Payment, usdcBase } from '../addons/x402';\n// const agent = withX402Payment(new ${agentName}(), { pricing: { '${caps[0] ?? 'myCapability'}': usdcBase(50, '0xMyWallet') } });`;
+    console.log('');
+    console.log(chalk.cyan('  x402 payment add-on enabled:'));
+    console.log(chalk.dim(x402Snippet));
+    console.log(chalk.dim('  Docs: docs/x402.md'));
+  }
+
   // Some frameworks are Python-only — print a note if user asked for another language
   const PYTHON_ONLY_FRAMEWORKS: Framework[] = ['crewai', 'agno', 'smolagents'];
   if (PYTHON_ONLY_FRAMEWORKS.includes(framework) && lang !== 'python') {
@@ -691,4 +703,7 @@ export async function createCommand(
     console.log(chalk.dim(`    2. Register your agent: await ${agentName}.register_discovery()`));
   }
   console.log(chalk.dim(`    3. Query from another agent: registry.query('${caps[0] ?? 'yourCapability'}')`));
+  if (options.addon === 'x402') {
+    console.log(chalk.dim('    4. Add payment: docs/x402.md'));
+  }
 }

@@ -10,7 +10,7 @@ const program = new Command();
 
 program
   .name('sentrix')
-  .description('Sentrix CLI — scaffold ERC-8004 compliant, P2P-discoverable agents')
+  .description('Sentrix CLI — Autonomous Agentic Coordination Middleware: scaffold P2P-discoverable, DID-native agents across any framework')
   .version(VERSION, '-v, --version', 'Print the current Sentrix CLI version');
 
 program

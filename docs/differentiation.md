@@ -95,7 +95,7 @@ SentriX introduces a **protocol layer for agents**, analogous to how TCP/IP enab
 
 | Layer | Responsibility |
 |------|--------------|
-| L1 | Identity, capability, trust (e.g., ERC-8004) |
+| L1 | Identity, capability, trust — DID (W3C) by default; ERC-8004 on-chain optional |
 | L2 | Discovery (registry, indexing, P2P lookup) |
 | L3 | Interaction (request/response protocol) |
 | L4 | Execution (agent runtime, frameworks like LangGraph) |
@@ -140,6 +140,7 @@ SentriX aims to become the **default coordination layer for autonomous agents**,
 - Open agent ecosystems
 - Cross-platform collaboration
 - Decentralized AI networks
+- W3C DID-native agent identity (no wallet required)
 - Composable, discoverable intelligence
 
 ---
