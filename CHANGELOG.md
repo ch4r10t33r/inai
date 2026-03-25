@@ -4,6 +4,12 @@ All notable changes to `sentrix-cli` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0](https://github.com/ch4r10t33r/sentrix/compare/v1.4.0...v1.5.0) (2026-03-25)
+
+### Features
+
+* **server:** built-in HTTP server for sentrix run ([f2d5673](https://github.com/ch4r10t33r/sentrix/commit/f2d56736021c6e1472d8d70f2bed3a71c9db9ba0))
+
 ## [1.4.0](https://github.com/ch4r10t33r/sentrix/compare/v1.3.0...v1.4.0) (2026-03-25)
 
 ### Features
