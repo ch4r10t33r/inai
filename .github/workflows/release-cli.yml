@@ -190,20 +190,31 @@ jobs:
           cp npm/sentrix-cli-darwin-arm64/bin/sentrix dist/sentrix-darwin-arm64
           cp npm/sentrix-cli-win32-x64/bin/sentrix.exe dist/sentrix-win32-x64.exe
 
-      - name: Create GitHub release
+      - name: Create or refresh GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
+          set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
-          gh release create "v$VERSION" \
-            --title "v$VERSION" \
-            --generate-notes \
-            dist/sentrix-linux-x64 \
-            dist/sentrix-linux-arm64 \
-            dist/sentrix-darwin-x64 \
-            dist/sentrix-darwin-arm64 \
-            dist/sentrix-win32-x64.exe \
+          TAG="v$VERSION"
+          FILES=(
+            dist/sentrix-linux-x64
+            dist/sentrix-linux-arm64
+            dist/sentrix-darwin-x64
+            dist/sentrix-darwin-arm64
+            dist/sentrix-win32-x64.exe
             install.sh
+          )
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists (retry / partial run); replacing assets"
+            gh release upload "$TAG" "${FILES[@]}" --clobber
+          else
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --generate-notes \
+              "${FILES[@]}"
+          fi
 
       - name: Publish platform packages
         env:
