@@ -1,9 +1,18 @@
+// NOTE: The SSE streaming endpoint (`/invoke/stream`) added below requires
+// `futures-util = "0.3"` in Cargo.toml (under [dependencies]).
+// Add the following line to your Cargo.toml.tpl or Cargo.toml:
+//   futures-util = { version = "0.3", default-features = false, features = ["alloc"] }
+
 use axum::{
     extract::State,
     http::StatusCode,
+    response::sse::{Event, Sse},
     routing::{get, post},
     Json, Router,
 };
+use futures_util::stream::{self, Stream};
+use serde_json::Value;
+use std::convert::Infallible;
 use std::sync::Arc;
 use std::time::Instant;
 use tokio::signal;
@@ -50,6 +59,70 @@ where
 
     let response: AgentResponse = state.agent.handle_request(request).await;
     (StatusCode::OK, Json(serde_json::to_value(response).unwrap_or_default()))
+}
+
+/// POST /invoke/stream — SSE streaming endpoint.
+///
+/// Accepts the same [`AgentRequest`] body as `/invoke`, calls
+/// `agent.handle_request()`, and returns the result as a Server-Sent Events
+/// stream.
+///
+/// ## Response format
+///
+/// ```text
+/// data: {"requestId":"…","status":"success","result":{…}}\n\n
+/// event: done\ndata: {}\n\n
+/// ```
+///
+/// The stream currently sends two events:
+/// 1. A `data:` event containing the full JSON-encoded [`AgentResponse`].
+/// 2. A terminal `event: done` frame with an empty data payload.
+///
+/// ## True token-by-token streaming
+///
+/// Because `IAgent::handle_request` returns a single completed `AgentResponse`,
+/// this endpoint simulates streaming by wrapping that response in an SSE stream.
+/// Agents that need real incremental / token-by-token streaming should implement
+/// an additional `async fn stream_request(&self, request: AgentRequest)
+/// -> impl Stream<Item = AgentResponse>` method on `IAgent` (future work).
+///
+/// ## Payment gating
+///
+/// The same x402 payment check applied to `/invoke` is applied here. Requests
+/// without a payment proof for priced capabilities receive HTTP 402 before any
+/// SSE connection is established.
+async fn invoke_stream_handler<A>(
+    State(state): State<Arc<ServerState<A>>>,
+    Json(request): Json<AgentRequest>,
+) -> Result<Sse<impl Stream<Item = Result<Event, Infallible>>>, (StatusCode, Json<Value>)>
+where
+    A: IAgent + Clone + Send + Sync + 'static,
+{
+    // x402 payment gate — identical to /invoke.
+    if request.payment.is_none() && state.agent.requires_payment() {
+        return Err((
+            StatusCode::PAYMENT_REQUIRED,
+            Json(json!({ "error": "payment required", "code": "402" })),
+        ));
+    }
+
+    // Execute the capability to completion.
+    let response: AgentResponse = state.agent.handle_request(request).await;
+
+    // Serialise the response for the first SSE data frame.
+    let response_json = serde_json::to_string(&response).unwrap_or_else(|e| {
+        json!({ "status": "error", "error_message": e.to_string() }).to_string()
+    });
+
+    // Build a two-event SSE stream:
+    //   1. data: <full AgentResponse JSON>
+    //   2. event: done / data: {}
+    let events: Vec<Result<Event, Infallible>> = vec![
+        Ok(Event::default().data(response_json)),
+        Ok(Event::default().event("done").data("{}")),
+    ];
+
+    Ok(Sse::new(stream::iter(events)))
 }
 
 /// POST /gossip — accept { "from": "...", "message": "..." }, log it, return { "ok": true }.
@@ -141,11 +214,12 @@ where
     });
 
     let app = Router::new()
-        .route("/invoke",       post(invoke_handler::<A>))
-        .route("/gossip",       post(gossip_handler::<A>))
-        .route("/health",       get(health_handler::<A>))
-        .route("/anr",          get(anr_handler::<A>))
-        .route("/capabilities", get(capabilities_handler::<A>))
+        .route("/invoke",        post(invoke_handler::<A>))
+        .route("/invoke/stream", post(invoke_stream_handler::<A>))
+        .route("/gossip",        post(gossip_handler::<A>))
+        .route("/health",        get(health_handler::<A>))
+        .route("/anr",           get(anr_handler::<A>))
+        .route("/capabilities",  get(capabilities_handler::<A>))
         .with_state(state);
 
     let addr = format!("0.0.0.0:{}", port);

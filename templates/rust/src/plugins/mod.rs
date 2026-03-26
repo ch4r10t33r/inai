@@ -4,3 +4,7 @@ pub use base::{SentrixPlugin, PluginConfig, CapabilityDescriptor, WrappedAgent};
 pub mod langgraph;
 pub mod google_adk;
 pub mod crewai;
+pub mod openai;
+pub mod agno;
+pub mod llamaindex;
+pub mod smolagents;

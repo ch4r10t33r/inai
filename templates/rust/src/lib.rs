@@ -1,4 +1,5 @@
 pub mod agent;
+pub mod addons;
 pub mod client;
 pub mod did_key_example;
 pub mod discovery;

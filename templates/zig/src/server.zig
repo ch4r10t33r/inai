@@ -2,6 +2,7 @@
 //!
 //! Endpoints:
 //!   POST /invoke        — dispatch an AgentRequest, return AgentResponse as JSON
+//!   POST /invoke/stream — dispatch an AgentRequest, return AgentResponse as SSE stream
 //!   POST /gossip        — accept {"from":"...","message":"..."}, log, return {"ok":true}
 //!   GET  /health        — return {"status":"healthy","uptime_ms":<elapsed>}
 //!   GET  /anr           — return the agent's DiscoveryEntry as JSON
@@ -97,6 +98,8 @@ fn handleConnection(
 
     if (method == .POST and std.mem.eql(u8, path, "/invoke")) {
         try handleInvoke(T, Iface, agent, &req, allocator);
+    } else if (method == .POST and std.mem.eql(u8, path, "/invoke/stream")) {
+        try handleInvokeStream(T, Iface, agent, &req, allocator);
     } else if (method == .POST and std.mem.eql(u8, path, "/gossip")) {
         try handleGossip(&req, allocator);
     } else if (method == .GET and std.mem.eql(u8, path, "/health")) {
@@ -165,6 +168,124 @@ fn handleInvoke(
     const json_slice = fbs.getWritten();
 
     try sendJson(req, .ok, json_slice);
+}
+
+// ── POST /invoke/stream ───────────────────────────────────────────────────────
+//
+// SSE (Server-Sent Events) streaming endpoint.
+//
+// This handler wraps the single AgentResponse returned by `agent.handleRequest`
+// as an SSE stream.  The wire format is:
+//
+//   data: <AgentResponse JSON>\n\n
+//   event: done\n
+//   data: {}\n\n
+//
+// NOTE: True token-by-token streaming (e.g. LLM chunk delivery) requires the
+// agent to implement a future `streamRequest` method that yields partial
+// results incrementally.  Until that interface is defined, this endpoint
+// provides SSE-compatible framing for clients that prefer the event-stream
+// content type (e.g. browser EventSource, curl --no-buffer) while keeping the
+// same single-round-trip latency as POST /invoke.
+
+fn handleInvokeStream(
+    comptime T: type,
+    comptime Iface: type,
+    agent: *T,
+    req: *std.http.Server.Request,
+    allocator: std.mem.Allocator,
+) !void {
+    // ── 1. Read and parse the request body ────────────────────────────────────
+    var body_list = std.ArrayList(u8).init(allocator);
+    defer body_list.deinit();
+    try req.collectBody(&body_list, READ_BUF_SIZE);
+    const body = body_list.items;
+
+    const parsed = std.json.parseFromSlice(
+        types.AgentRequest,
+        allocator,
+        body,
+        .{ .ignore_unknown_fields = true },
+    ) catch |err| {
+        std.log.warn("[server] /invoke/stream: JSON parse error: {}", .{err});
+        // SSE clients still expect text/event-stream, but we send an error
+        // event before closing so the client's onerror handler fires cleanly.
+        return sendSseError(req, "invalid JSON body");
+    };
+    defer parsed.deinit();
+
+    const agent_req = parsed.value;
+
+    // ── 2. x402 payment gating (mirrors /invoke behaviour) ───────────────────
+    if (@hasDecl(T, "requiresPayment")) {
+        if (agent.requiresPayment()) {
+            if (agent_req.payment == null) {
+                return sendSseError(req, "payment required");
+            }
+        }
+    }
+
+    // ── 3. Dispatch through the IAgent vtable ─────────────────────────────────
+    const response = Iface.dispatch(agent, agent_req);
+
+    // ── 4. Serialize the AgentResponse to JSON ────────────────────────────────
+    var json_buf: [RESP_BUF_SIZE]u8 = undefined;
+    var fbs = std.io.fixedBufferStream(&json_buf);
+    try std.json.stringify(response, .{}, fbs.writer());
+    const json_slice = fbs.getWritten();
+
+    // ── 5. Build the full SSE body ────────────────────────────────────────────
+    //
+    // SSE format (https://html.spec.whatwg.org/multipage/server-sent-events.html):
+    //   field: value\n     — named field
+    //   \n                 — blank line terminates an event
+    //
+    // We emit two events:
+    //   • An unnamed data event carrying the full AgentResponse JSON.
+    //   • A named "done" event with an empty payload so clients can detect EOS.
+    //
+    // The body is small enough to fit comfortably in RESP_BUF_SIZE.
+    var sse_buf: [RESP_BUF_SIZE + 64]u8 = undefined;
+    var sse_fbs = std.io.fixedBufferStream(&sse_buf);
+    const w = sse_fbs.writer();
+
+    try w.writeAll("data: ");
+    try w.writeAll(json_slice);
+    try w.writeAll("\n\n");
+
+    try w.writeAll("event: done\n");
+    try w.writeAll("data: {}\n\n");
+
+    const sse_body = sse_fbs.getWritten();
+
+    // ── 6. Send the response with SSE headers ─────────────────────────────────
+    try req.respond(sse_body, .{
+        .status = .ok,
+        .extra_headers = &.{
+            .{ .name = "Content-Type",  .value = "text/event-stream" },
+            .{ .name = "Cache-Control", .value = "no-cache" },
+            .{ .name = "Connection",    .value = "keep-alive" },
+        },
+    });
+}
+
+/// Send a minimal SSE response that carries a single error event, allowing
+/// clients listening on the event stream to detect failures gracefully.
+fn sendSseError(req: *std.http.Server.Request, reason: []const u8) !void {
+    var buf: [512]u8 = undefined;
+    const body = try std.fmt.bufPrint(
+        &buf,
+        "event: error\ndata: {{\"error\":\"{s}\"}}\n\nevent: done\ndata: {{}}\n\n",
+        .{reason},
+    );
+    try req.respond(body, .{
+        .status = .ok, // SSE connections always open with 200; errors go in events
+        .extra_headers = &.{
+            .{ .name = "Content-Type",  .value = "text/event-stream" },
+            .{ .name = "Cache-Control", .value = "no-cache" },
+            .{ .name = "Connection",    .value = "keep-alive" },
+        },
+    });
 }
 
 // ── POST /gossip ──────────────────────────────────────────────────────────────
