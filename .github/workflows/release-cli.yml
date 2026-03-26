@@ -50,6 +50,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Sync Cargo.toml version from package.json
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          sed -i.bak "s/^version *= *\"[^\"]*\"/version     = \"$VERSION\"/" Cargo.toml
+          rm -f Cargo.toml.bak
+          echo "Synced Cargo.toml workspace version to $VERSION"
+
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -108,14 +116,10 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Install Rust (for cargo metadata)
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Extract version from Cargo workspace
+      - name: Extract version from package.json
         id: version
         run: |
-          VERSION=$(cargo metadata --format-version 1 --no-deps \
-            | jq -r '.packages[] | select(.name=="sentrix-cli") | .version')
+          VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Releasing v$VERSION"
 

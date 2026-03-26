@@ -9,7 +9,7 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(
     name    = "sentrix",
-    version = env!("CARGO_PKG_VERSION"),
+    version = env!("SENTRIX_VERSION"),
     about   = "Scaffold P2P-discoverable, DID-native AI agents across any framework",
     long_about = None,
     propagate_version = true,
