@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/ch4r10t33r/sentrix/compare/v1.14.2...v1.15.0) (2026-03-26)
+
+
+### Features
+
+* add Sentrix logo (P2P agent mesh, hex topology, DID-native) ([039fb3c](https://github.com/ch4r10t33r/sentrix/commit/039fb3c78b01052893c4a2bc199f29328d03e0d8))
+
 ## [1.14.2](https://github.com/ch4r10t33r/sentrix/compare/v1.14.1...v1.14.2) (2026-03-26)
 
 
