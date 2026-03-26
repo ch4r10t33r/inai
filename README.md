@@ -82,8 +82,52 @@ Sentrix operates primarily at **L2** and **L3**, bridging L1 identity to L4 fram
 
 ## Installation
 
+### npm (recommended)
+
+Works on macOS, Linux, and Windows. npm downloads the correct pre-built
+Rust binary for your platform automatically.
+
 ```bash
 npm install -g @ch4r10teer41/sentrix-cli
+```
+
+### Direct binary download
+
+Pre-built binaries for every platform are attached to each
+[GitHub Release](https://github.com/ch4r10t33r/sentrix/releases).
+Download the binary for your platform, make it executable, and place it
+somewhere on your `PATH`:
+
+```bash
+# macOS (Apple Silicon)
+curl -L https://github.com/ch4r10t33r/sentrix/releases/latest/download/sentrix-darwin-arm64 \
+  -o /usr/local/bin/sentrix && chmod +x /usr/local/bin/sentrix
+
+# macOS (Intel)
+curl -L https://github.com/ch4r10t33r/sentrix/releases/latest/download/sentrix-darwin-x64 \
+  -o /usr/local/bin/sentrix && chmod +x /usr/local/bin/sentrix
+
+# Linux (x86_64)
+curl -L https://github.com/ch4r10t33r/sentrix/releases/latest/download/sentrix-linux-x64 \
+  -o /usr/local/bin/sentrix && chmod +x /usr/local/bin/sentrix
+
+# Linux (ARM64)
+curl -L https://github.com/ch4r10t33r/sentrix/releases/latest/download/sentrix-linux-arm64 \
+  -o /usr/local/bin/sentrix && chmod +x /usr/local/bin/sentrix
+```
+
+Windows users can download `sentrix-win32-x64.exe` from the releases page
+and add it to their `PATH` manually.
+
+### Build from source
+
+Requires [Rust](https://rustup.rs) 1.75+.
+
+```bash
+git clone https://github.com/ch4r10t33r/sentrix.git
+cd sentrix
+cargo build --release --package sentrix-cli
+# Binary is at ./target/release/sentrix
 ```
 
 ---
