@@ -4,6 +4,8 @@ import { createCommand }   from './commands/create';
 import { runCommand }      from './commands/run';
 import { discoverCommand } from './commands/discover';
 import { versionCommand }  from './commands/version';
+import { testCommand }    from './commands/test';
+import { inspectCommand } from './commands/inspect';
 import { VERSION }         from './version';
 
 const program = new Command();
@@ -50,5 +52,21 @@ program
   .command('version')
   .description('Show detailed version and build info')
   .action(versionCommand);
+
+program
+  .command('test [agent-name]')
+  .description('Run unit tests for agents, or scaffold a test file')
+  .option('--generate', 'Generate a test scaffold for the named agent')
+  .option('--watch',    'Watch mode (TypeScript/Python only)')
+  .option('--coverage', 'Collect coverage report')
+  .action(testCommand);
+
+program
+  .command('inspect [subcommand] [target]')
+  .description('Inspect ANR records and mesh topology')
+  .option('--host <host>', 'Discovery or agent host', 'localhost')
+  .option('--port <port>', 'Discovery or agent port', '3000')
+  .option('--raw',         'Output raw JSON')
+  .action(inspectCommand);
 
 program.parse(process.argv);
