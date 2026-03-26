@@ -54,10 +54,14 @@ pub const AgentResponse = struct {
 pub const NetworkProtocol = enum { http, websocket, grpc, tcp };
 
 pub const NetworkInfo = struct {
-    protocol: NetworkProtocol = .http,
-    host:     []const u8,
-    port:     u16,
-    tls:      bool = false,
+    protocol:  NetworkProtocol = .http,
+    host:      []const u8,
+    port:      u16,
+    tls:       bool = false,
+    /// libp2p PeerId string (empty when not in P2P mode).
+    peer_id:   []const u8 = "",
+    /// Full listen multiaddr when known (empty otherwise).
+    multiaddr: []const u8 = "",
 };
 
 pub const HealthStatus = enum { healthy, degraded, unhealthy };

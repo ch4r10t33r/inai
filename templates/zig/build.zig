@@ -28,11 +28,30 @@ pub fn build(b: *std.Build) void {
         },
     });
 
+    const discovery_http_mod = b.addModule("discovery_http", .{
+        .root_source_file = b.path("src/discovery_http.zig"),
+        .imports = &.{
+            .{ .name = "types", .module = types_mod },
+            .{ .name = "discovery", .module = discovery_mod },
+        },
+    });
+
+    const discovery_libp2p_mod = b.addModule("discovery_libp2p", .{
+        .root_source_file = b.path("src/discovery_libp2p.zig"),
+        .imports = &.{
+            .{ .name = "types", .module = types_mod },
+            .{ .name = "discovery", .module = discovery_mod },
+            .{ .name = "discovery_http", .module = discovery_http_mod },
+        },
+    });
+
     const client_mod = b.addModule("client", .{
         .root_source_file = b.path("src/client.zig"),
         .imports = &.{
-            .{ .name = "types",     .module = types_mod     },
+            .{ .name = "types", .module = types_mod },
             .{ .name = "discovery", .module = discovery_mod },
+            .{ .name = "discovery_http", .module = discovery_http_mod },
+            .{ .name = "discovery_libp2p", .module = discovery_libp2p_mod },
         },
     });
 
@@ -162,7 +181,9 @@ pub fn build(b: *std.Build) void {
     unit_tests.root_module.addImport("types",     types_mod);
     unit_tests.root_module.addImport("iagent",    iagent_mod);
     unit_tests.root_module.addImport("discovery", discovery_mod);
-    unit_tests.root_module.addImport("client",    client_mod);
+    unit_tests.root_module.addImport("client", client_mod);
+    unit_tests.root_module.addImport("discovery_http", discovery_http_mod);
+    unit_tests.root_module.addImport("discovery_libp2p", discovery_libp2p_mod);
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&b.addRunArtifact(unit_tests).step);

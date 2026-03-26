@@ -138,6 +138,8 @@ pub fn WrappedAgent(comptime TAgent: type, comptime TPlugin: type) type {
                     .host = self.config.network_host,
                     .port = self.config.network_port,
                     .tls = false,
+                    .peer_id = "",
+                    .multiaddr = "",
                 },
                 .health = .healthy,
                 .registered_at = std.time.milliTimestamp(),

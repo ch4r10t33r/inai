@@ -62,7 +62,7 @@ Sentrix operates primarily at **L2** and **L3**, bridging L1 identity to L4 fram
 | **DID identity (`did:key`)** | ✅ | ✅ | ✅ | ✅ |
 | **HTTP server (`sentrix run`)** | ✅ | ✅ | ✅ | ✅ |
 | **Discovery — local (in-memory)** | ✅ | ✅ | ✅ | ✅ |
-| **Discovery — HTTP** | ✅ | ✅ | ✅ | 🔜 |
+| **Discovery — HTTP** | ✅ | ✅ | ✅ | ✅ |
 | **Discovery — libp2p + Kademlia DHT** | ✅ | ✅ | ✅ | 🔜 |
 | **Discovery — gossip fan-out** | ✅ | ✅ | ✅ | ✅ |
 | **AgentClient (mesh protocols)** | ✅ | ✅ | ✅ | ✅ |
@@ -81,6 +81,8 @@ Sentrix operates primarily at **L2** and **L3**, bridging L1 identity to L4 fram
 | **Streaming (SSE via /invoke/stream)** | ✅ | ✅ | 🔜 | 🔜 |
 
 **Legend:** ✅ implemented · 🔜 on roadmap · — not applicable for this language
+
+**Zig — discovery:** `HttpDiscovery` (`discovery_http.zig`) is a REST client for the discovery service (`SENTRIX_DISCOVERY_URL`, `SENTRIX_DISCOVERY_KEY`). `Libp2pDiscovery` (`discovery_libp2p.zig`) keeps an in-memory registry and builds JSON for gossip publish / ingest; it does not run an in-process Kademlia DHT (see 🔜 above).
 
 ---
 

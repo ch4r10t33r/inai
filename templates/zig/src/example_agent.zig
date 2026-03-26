@@ -8,10 +8,10 @@
 //!
 //! Replace the capability implementations with your own logic.
 
-const std   = @import("std");
+const std = @import("std");
 const types = @import("types.zig");
 const iface = @import("iagent.zig");
-const disc  = @import("discovery.zig");
+const disc = @import("discovery.zig");
 const client_mod = @import("client.zig");
 
 pub const ExampleAgent = struct {
@@ -61,6 +61,8 @@ pub const ExampleAgent = struct {
                 .host     = "localhost",
                 .port     = 6174,
                 .tls      = false,
+                .peer_id   = "",
+                .multiaddr = "",
             },
             .health        = .healthy,
             .registered_at = std.time.milliTimestamp(),
@@ -119,15 +121,27 @@ pub fn main() !void {
     const anr = agent.getAnr();
     std.log.info("Agent ID    : {s}", .{anr.agent_id});
     std.log.info("Owner       : {s}", .{anr.owner});
-    std.log.info("Endpoint    : {s}://{}:{}", .{ @tagName(anr.network.protocol), anr.network.host, anr.network.port });
-    std.log.info("Capabilities: {s}", .{anr.capabilities});
+    std.log.info("Endpoint    : {s}://{s}:{d}", .{
+        @tagName(anr.network.protocol),
+        anr.network.host,
+        anr.network.port,
+    });
+    {
+        var caps_buf = std.ArrayList(u8).init(allocator);
+        defer caps_buf.deinit();
+        for (anr.capabilities, 0..) |c, i| {
+            if (i > 0) try caps_buf.appendSlice(", ");
+            try caps_buf.appendSlice(c);
+        }
+        std.log.info("Capabilities: {s}", .{caps_buf.items});
+    }
     if (anr.metadata_uri) |uri| std.log.info("Metadata    : {s}", .{uri});
     if (agent.getPeerId()) |pid| {
         // Build multiaddr from host + port + peerId (libp2p mode):
         // "/ip4/<host>/tcp/<port>/p2p/<peerId>"
         const multiaddr = try std.fmt.allocPrint(
             allocator,
-            "/ip4/{s}/tcp/{}/p2p/{s}",
+            "/ip4/{s}/tcp/{d}/p2p/{s}",
             .{ anr.network.host, anr.network.port, pid },
         );
         defer allocator.free(multiaddr);
@@ -137,7 +151,7 @@ pub fn main() !void {
         // Build multiaddr for HTTP mode: "/ip4/<host>/tcp/<port>"
         const multiaddr = try std.fmt.allocPrint(
             allocator,
-            "/ip4/{s}/tcp/{}",
+            "/ip4/{s}/tcp/{d}",
             .{ anr.network.host, anr.network.port },
         );
         defer allocator.free(multiaddr);
@@ -181,14 +195,15 @@ pub fn main() !void {
     //  In production, start an HTTP server and replace LocalDiscovery with
     //  HttpDiscovery or GossipDiscovery.
 
-    var ag_client = client_mod.AgentClient.init(allocator, &agent.discovery, .{
+    var ag_client = client_mod.AgentClient.init(allocator, .{ .local = &agent.discovery }, .{
         .caller_id = "sentrix://agent/caller",
     });
     defer ag_client.deinit();
 
-    // find() — lookup only, no HTTP
+    // find() — lookup only, no HTTP (free cloned entry when done)
     if (try ag_client.find("ping")) |found| {
-        std.log.info("[client] find(ping) → {s} @ {s}:{}", .{
+        defer disc.freeDiscoveryEntry(allocator, found);
+        std.log.info("[client] find(ping) → {s} @ {s}:{d}", .{
             found.agent_id,
             found.network.host,
             found.network.port,
