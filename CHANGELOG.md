@@ -4,6 +4,12 @@ All notable changes to `sentrix-cli` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0](https://github.com/ch4r10t33r/sentrix/compare/v1.11.0...v1.12.0) (2026-03-26)
+
+### Features
+
+* default port 6174, multiaddr always populated, libp2p port documented ([fa4e8e6](https://github.com/ch4r10t33r/sentrix/commit/fa4e8e68441e172d599f66fbe62b7898e6708b9e))
+
 ## [1.11.0](https://github.com/ch4r10t33r/sentrix/compare/v1.10.0...v1.11.0) (2026-03-26)
 
 ### Features
