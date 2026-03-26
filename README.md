@@ -36,7 +36,7 @@ Sentrix operates primarily at **L2** and **L3**, bridging L1 identity to L4 fram
 ## Features
 
 - **Framework-agnostic** — wrap LangGraph, Google ADK, CrewAI, Agno, LlamaIndex, smolagents, or OpenAI Agents with one function call
-- **Built-in HTTP server** — `sentrix run MyAgent --port 8080` starts a real HTTP server; no extra setup
+- **Built-in HTTP server** — `sentrix run MyAgent --port 6174` starts a real HTTP server; no extra setup
 - **MCP bridge** — any MCP server becomes a Sentrix agent; any Sentrix agent becomes an MCP server (Claude Desktop, Cursor, Continue)
 - **Dynamic discovery** — agents register capabilities; callers query at runtime, no hardcoded URLs
 - **Mesh protocols** — heartbeat, capability exchange (as part of handshake), and gossip fan-out built in
@@ -94,12 +94,12 @@ npm install -g @ch4r10teer41/sentrix-cli
 # Scaffold a new project (TypeScript default)
 sentrix init my-agent
 cd my-agent && npm install
-sentrix run ExampleAgent --port 8080
+sentrix run ExampleAgent --port 6174
 
 # Python
 sentrix init my-agent --lang python
 cd my-agent
-sentrix run ExampleAgent --port 8080
+sentrix run ExampleAgent --port 6174
 
 # Rust
 sentrix init my-agent --lang rust
@@ -116,13 +116,16 @@ Once running, the agent prints its full startup banner:
 ────────────────────────────────────────────────────────────
   Name         ExampleAgent
   Agent ID     sentrix://agent/example
-  Endpoint     http://0.0.0.0:8080
+  Endpoint     http://0.0.0.0:6174
+  Multiaddr    /ip4/0.0.0.0/tcp/6174/p2p/12D3Koo...  (libp2p mode)
   Discovery    local
   Capabilities (2)
            • echo
            • ping
 ────────────────────────────────────────────────────────────
 ```
+
+> **Default port: 6174** ([Kaprekar's constant](https://en.wikipedia.org/wiki/6174)). Override with `SENTRIX_PORT=<n>` or `--port <n>`.
 
 ---
 
@@ -132,7 +135,7 @@ Once running, the agent prints its full startup banner:
 |---|---|
 | `sentrix init <name> [--lang ts\|python\|rust\|zig]` | Scaffold a new Sentrix project |
 | `sentrix create agent <name> [-c cap1,cap2] [--framework X]` | Add an agent to an existing project |
-| `sentrix run <AgentName> [--port 8080]` | Start an agent's HTTP server |
+| `sentrix run <AgentName> [--port 6174]` | Start an agent's HTTP server |
 | `sentrix discover [-c capability] [--host h] [--port p]` | Query the discovery layer |
 | `sentrix version` | Show CLI version and build info |
 
@@ -178,7 +181,7 @@ from plugins.smolagents_plugin import wrap_smolagents
 
 # Serve over HTTP (all plugins share the same interface)
 import asyncio
-asyncio.run(agent.serve(port=8080))
+asyncio.run(agent.serve(port=6174))
 ```
 
 ### TypeScript
@@ -192,7 +195,7 @@ const agent = wrapLangGraph(compiledGraph, config);
 import { wrapOpenAI } from './plugins/OpenAIPlugin';
 const agent = wrapOpenAI(oaiAgent, { agentId: 'sentrix://agent/weather', name: 'WeatherBot', ... });
 
-await agent.serve({ port: 8080 });
+await agent.serve({ port: 6174 });
 ```
 
 ---
@@ -262,6 +265,28 @@ resp = await client.call_capability("web_search", {"query": "latest AI news"})
 ---
 
 ## Protocol Reference
+
+### Ports and Addresses
+
+| Layer | Default address | Env override |
+|---|---|---|
+| HTTP server (`/invoke`, `/health`, …) | `0.0.0.0:6174` | `SENTRIX_PORT` |
+| libp2p TCP (GossipSub + request-response) | `/ip4/0.0.0.0/tcp/6174` | `SENTRIX_P2P_ADDR` |
+| libp2p QUIC (Rust/Zig DHT) | `/ip4/0.0.0.0/udp/6174/quic-v1` | `SENTRIX_P2P_PORT` |
+| Bootstrap peers | _(none — mDNS only on LAN)_ | `SENTRIX_BOOTSTRAP_PEERS` (comma-separated multiaddrs) |
+
+All discovery traffic — DHT announces, gossip fan-out, and capability queries — travels **over the libp2p transport on the same port**. There is no separate discovery port.
+
+Every agent's ANR always carries the full `multiaddr` when running in libp2p mode:
+
+```
+/ip4/<host>/tcp/<port>/p2p/<PeerId>          # TCP (TypeScript)
+/ip4/<host>/udp/<port>/quic-v1/p2p/<PeerId>  # QUIC (Rust)
+```
+
+When only HTTP transport is active, `network.multiaddr` is empty and `network.protocol` is `"http"`.
+
+---
 
 ### Agent DID and Identity
 
@@ -538,7 +563,7 @@ from identity.provider import LocalKeystoreIdentity
 identity = LocalKeystoreIdentity(name="my-agent")
 print(identity.agent_id())  # did:key:zQ3shXXX...
 
-config = PluginConfig(**identity.to_plugin_config_fields(), port=8080)
+config = PluginConfig(**identity.to_plugin_config_fields(), port=6174)
 ```
 
 → Full guide: **[docs/identity.md](docs/identity.md)**
