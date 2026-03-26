@@ -4,6 +4,12 @@ All notable changes to `sentrix-cli` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0](https://github.com/ch4r10t33r/sentrix/compare/v1.8.0...v1.9.0) (2026-03-26)
+
+### Features
+
+* add libp2p transport (TypeScript, Rust + C FFI for Python/Zig) ([d884a04](https://github.com/ch4r10t33r/sentrix/commit/d884a047c2f7a96ee6077d6810d5f38f810c609b))
+
 ## [1.8.0](https://github.com/ch4r10t33r/sentrix/compare/v1.7.0...v1.8.0) (2026-03-26)
 
 ### Features
