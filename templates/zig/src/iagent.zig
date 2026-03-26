@@ -53,7 +53,8 @@ pub fn IAgent(comptime T: type) type {
         /// Delegates to the implementing type's `getAnr()` if present.
         /// Falls back to a minimal entry built from `agentId()` / `owner()`.
         pub fn getAnr(self: *T, allocator: std.mem.Allocator) types.DiscoveryEntry {
-            if (@hasDecl(T, "getAnr")) return self.getAnr(allocator);
+            _ = allocator;
+            if (@hasDecl(T, "getAnr")) return self.getAnr();
             // Default: minimal entry from identity fields
             return types.DiscoveryEntry{
                 .agent_id     = self.agentId(),
@@ -65,12 +66,13 @@ pub fn IAgent(comptime T: type) type {
                     .host     = "localhost",
                     .port     = 6174,
                     .tls      = false,
+                    .peer_id   = "",
+                    .multiaddr = "",
                 },
-                .health       = .healthy,
+                .health        = .healthy,
                 .registered_at = std.time.milliTimestamp(),
                 .metadata_uri  = null,
             };
-            _ = allocator; // reserved for future JSON serialisation
         }
 
         /// Return the libp2p PeerId derived from this agent's secp256k1 ANR key.

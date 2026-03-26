@@ -242,7 +242,7 @@ fn handleAnr(
     // enum serialization across Zig versions and optional fields.
     var buf: [RESP_BUF_SIZE]u8 = undefined;
     const json = try std.fmt.bufPrint(&buf,
-        \\{{"agent_id":"{s}","name":"{s}","owner":"{s}","capabilities":{s},"network":{{"protocol":"{s}","host":"{s}","port":{d},"tls":{s}}},"health":"{s}","registered_at":{d},"metadata_uri":{s}}}
+        \\{{"agent_id":"{s}","name":"{s}","owner":"{s}","capabilities":{s},"network":{{"protocol":"{s}","host":"{s}","port":{d},"tls":{s},"peer_id":"{s}","multiaddr":"{s}"}},"health":"{s}","registered_at":{d},"metadata_uri":{s}}}
         ,
         .{
             entry.agent_id,
@@ -253,6 +253,8 @@ fn handleAnr(
             entry.network.host,
             entry.network.port,
             if (entry.network.tls) "true" else "false",
+            entry.network.peer_id,
+            entry.network.multiaddr,
             @tagName(entry.health),
             entry.registered_at,
             if (entry.metadata_uri) |uri| blk: {

@@ -28,11 +28,30 @@ pub fn build(b: *std.Build) void {
         },
     });
 
+    const discovery_http_mod = b.addModule("discovery_http", .{
+        .root_source_file = b.path("src/discovery_http.zig"),
+        .imports = &.{
+            .{ .name = "types", .module = types_mod },
+            .{ .name = "discovery", .module = discovery_mod },
+        },
+    });
+
+    const discovery_libp2p_mod = b.addModule("discovery_libp2p", .{
+        .root_source_file = b.path("src/discovery_libp2p.zig"),
+        .imports = &.{
+            .{ .name = "types", .module = types_mod },
+            .{ .name = "discovery", .module = discovery_mod },
+            .{ .name = "discovery_http", .module = discovery_http_mod },
+        },
+    });
+
     const client_mod = b.addModule("client", .{
         .root_source_file = b.path("src/client.zig"),
         .imports = &.{
-            .{ .name = "types",     .module = types_mod     },
+            .{ .name = "types", .module = types_mod },
             .{ .name = "discovery", .module = discovery_mod },
+            .{ .name = "discovery_http", .module = discovery_http_mod },
+            .{ .name = "discovery_libp2p", .module = discovery_libp2p_mod },
         },
     });
 
@@ -133,6 +152,25 @@ pub fn build(b: *std.Build) void {
     const plugins_step = b.step("plugins", "Compile the Sentrix plugins modules");
     plugins_step.dependOn(&b.addInstallArtifact(plugins_lib, .{}).step);
 
+    // ── example programs: did:key + gossip fan-out ────────────────────────────
+
+    const ex_did = b.addExecutable(.{
+        .name             = "example-did-key",
+        .root_source_file = b.path("examples/did_key_identity.zig"),
+        .target           = target,
+        .optimize         = optimize,
+    });
+    const ex_gossip = b.addExecutable(.{
+        .name             = "example-gossip-fanout",
+        .root_source_file = b.path("examples/gossip_fanout_discovery.zig"),
+        .target           = target,
+        .optimize         = optimize,
+    });
+
+    const examples_step = b.step("examples", "Build did:key + gossip fan-out demos");
+    examples_step.dependOn(&b.addInstallArtifact(ex_did, .{}).step);
+    examples_step.dependOn(&b.addInstallArtifact(ex_gossip, .{}).step);
+
     // ── unit tests ────────────────────────────────────────────────────────────
 
     const unit_tests = b.addTest(.{
@@ -143,7 +181,9 @@ pub fn build(b: *std.Build) void {
     unit_tests.root_module.addImport("types",     types_mod);
     unit_tests.root_module.addImport("iagent",    iagent_mod);
     unit_tests.root_module.addImport("discovery", discovery_mod);
-    unit_tests.root_module.addImport("client",    client_mod);
+    unit_tests.root_module.addImport("client", client_mod);
+    unit_tests.root_module.addImport("discovery_http", discovery_http_mod);
+    unit_tests.root_module.addImport("discovery_libp2p", discovery_libp2p_mod);
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&b.addRunArtifact(unit_tests).step);
