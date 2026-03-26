@@ -1,3 +1,11 @@
+## [1.15.1](https://github.com/ch4r10t33r/sentrix/compare/v1.15.0...v1.15.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* extend logo background to full card so text is visible in light mode ([379a3de](https://github.com/ch4r10t33r/sentrix/commit/379a3de98b8b0fe79b8a9913c6e6920f132b7063))
+* use absolute URL for logo so it renders on npm and other hosts ([8bfc7c6](https://github.com/ch4r10t33r/sentrix/commit/8bfc7c63cbe5c1cc5d597efa78d05da16d301f3d))
+
 # [1.15.0](https://github.com/ch4r10t33r/sentrix/compare/v1.14.2...v1.15.0) (2026-03-26)
 
 
