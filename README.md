@@ -48,6 +48,38 @@ Sentrix operates primarily at **L2** and **L3**, bridging L1 identity to L4 fram
 
 ---
 
+## Language Coverage
+
+| Feature | Python | TypeScript | Rust | Zig |
+|---|:---:|:---:|:---:|:---:|
+| **IAgent interface** | ✅ | ✅ | ✅ | ✅ |
+| **AgentRequest / AgentResponse** | ✅ | ✅ | ✅ | ✅ |
+| **ANR (Agent Network Record)** | ✅ | ✅ | ✅ | ✅ |
+| **DID identity (`did:key`)** | ✅ | ✅ | 🔜 | 🔜 |
+| **HTTP server (`sentrix run`)** | ✅ | ✅ | 🔜 | 🔜 |
+| **Discovery — local (in-memory)** | ✅ | ✅ | ✅ | ✅ |
+| **Discovery — HTTP** | ✅ | ✅ | ✅ | 🔜 |
+| **Discovery — libp2p + Kademlia DHT** | ✅ | ✅ | ✅ | 🔜 |
+| **Discovery — gossip fan-out** | ✅ | ✅ | 🔜 | 🔜 |
+| **AgentClient (mesh protocols)** | ✅ | ✅ | ✅ | ✅ |
+| **Example agent** | ✅ | ✅ | ✅ | ✅ |
+| **Plugin system (framework adapters)** | ✅ | ✅ | 🔜 | 🔜 |
+| **LangGraph plugin** | ✅ | ✅ | — | — |
+| **Google ADK plugin** | ✅ | 🔜 | — | — |
+| **CrewAI plugin** | ✅ | — | — | — |
+| **OpenAI Agents SDK plugin** | ✅ | ✅ | — | — |
+| **Agno plugin** | ✅ | 🔜 | — | — |
+| **LlamaIndex plugin** | ✅ | 🔜 | — | — |
+| **smolagents plugin** | ✅ | 🔜 | — | — |
+| **MCP bridge (wrap MCP servers)** | ✅ | ✅ | — | — |
+| **MCP bridge (expose as MCP server)** | ✅ | ✅ | — | — |
+| **x402 micropayments** | ✅ | ✅ | 🔜 | 🔜 |
+| **Streaming (SSE via /invoke/stream)** | ✅ | ✅ | 🔜 | 🔜 |
+
+**Legend:** ✅ implemented · 🔜 on roadmap · — not applicable for this language
+
+---
+
 ## Installation
 
 ```bash
