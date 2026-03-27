@@ -1,5 +1,19 @@
 # Changelog
 
+All notable changes to `borgkit-cli` are documented here.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.22.1](https://github.com/ch4r10t33r/borgkit/compare/v1.22.0...v1.22.1) (2026-03-27)
+
+### Bug Fixes
+
+* fully regenerate package-lock.json from scratch (nested deps still had 0.1.0 from prior sed) ([0b713a9](https://github.com/ch4r10t33r/borgkit/commit/0b713a9a8fd97d7acd1d4fa681d95dbb520a8fcc))
+* regenerate package-lock.json after version reset (sed had clobbered all dep versions to 0.1.0) ([a199e3e](https://github.com/ch4r10t33r/borgkit/commit/a199e3ecbf7a4b1813ce1e2d7e398cb51bbff00a))
+* rename bin/sentrix.js → bin/borgkit.js to match package.json bin field ([99c1958](https://github.com/ch4r10t33r/borgkit/commit/99c1958661bcc7b87a8c3cdadc059414810351a0))
+
+# Changelog
+
 All notable changes to `sentrix-cli` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
