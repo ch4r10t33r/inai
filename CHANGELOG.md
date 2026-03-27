@@ -4,6 +4,12 @@ All notable changes to `inai-cli` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1](https://github.com/ch4r10t33r/inai/compare/v0.3.0...v0.3.1) (2026-03-27)
+
+### Bug Fixes
+
+* trigger patch release ([462f7c7](https://github.com/ch4r10t33r/inai/commit/462f7c77867282321f18450695c4c3de15812121))
+
 ## [0.3.0](https://github.com/ch4r10t33r/inai/compare/v0.2.0...v0.3.0) (2026-03-27)
 
 ### Features

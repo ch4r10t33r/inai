@@ -1,6 +1,6 @@
 {
   "name": "@ch4r10teer41/inai-cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Scaffold P2P-discoverable, DID-native AI agents that interoperate across any framework",
   "bin": {
     "inai": "bin/inai.js"
