@@ -229,6 +229,7 @@ jobs:
               echo "@ch4r10teer41/$pkg@$VERSION already published — skipping"
             else
               npm publish --access public
+              sleep 5
             fi
             cd ../..
           done
