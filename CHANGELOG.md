@@ -4,6 +4,12 @@ All notable changes to `borgkit-cli` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0](https://github.com/ch4r10t33r/borgkit/compare/v0.1.1...v0.2.0) (2026-03-27)
+
+### Features
+
+* **scaffold:** inject flag-aware deps into package.json / Cargo.toml / build.zig.zon ([de4a1f1](https://github.com/ch4r10t33r/borgkit/commit/de4a1f1e06e3590ec365b4a75c9b09e038654ddc))
+
 ## [0.1.1](https://github.com/ch4r10t33r/borgkit/compare/v0.1.0...v0.1.1) (2026-03-27)
 
 ### Bug Fixes
