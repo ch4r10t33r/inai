@@ -158,17 +158,39 @@ cd my-agent
 zig build examples   # optional: builds did:key + gossip fan-out demo binaries
 ```
 
-Once running, the agent prints its full startup banner:
+Once running, the agent prints its full startup banner. The banner looks different depending on whether libp2p is enabled:
 
+**Local mode (default — no `BORGKIT_DISCOVERY_TYPE` set):**
 ```
 ────────────────────────────────────────────────────────────
   Borgkit Agent Online  v0.1.0
 ────────────────────────────────────────────────────────────
   Name         ExampleAgent
   Agent ID     borgkit://agent/example
+  Peer ID      (none — set BORGKIT_DISCOVERY_TYPE=libp2p to enable P2P)
   Endpoint     http://0.0.0.0:6174
-  Multiaddr    /ip4/0.0.0.0/tcp/6174/p2p/12D3Koo...  (libp2p mode)
   Discovery    local
+  ANR          {"agentId":"borgkit://agent/example","name":"ExampleAgent",...}
+  ANR JSON     curl -s http://localhost:6174/anr
+  Capabilities (2)
+           • echo
+           • ping
+────────────────────────────────────────────────────────────
+```
+
+**libp2p mode (`BORGKIT_DISCOVERY_TYPE=libp2p`):**
+```
+────────────────────────────────────────────────────────────
+  Borgkit Agent Online  v0.1.0
+────────────────────────────────────────────────────────────
+  Name         ExampleAgent
+  Agent ID     borgkit://agent/example
+  Peer ID      12D3KooWQmK3p2pFBFVxpuBkJCxZ1HsK...
+  Endpoint     http://0.0.0.0:6174
+  Multiaddr    /ip4/0.0.0.0/tcp/6174/p2p/12D3KooW...
+  Discovery    libp2p (Kademlia DHT)
+  ANR          {"agentId":"borgkit://agent/example","name":"ExampleAgent",...}
+  ANR JSON     curl -s http://localhost:6174/anr
   Capabilities (2)
            • echo
            • ping
@@ -176,6 +198,80 @@ Once running, the agent prints its full startup banner:
 ```
 
 > **Default port: 6174** ([Kaprekar's constant](https://en.wikipedia.org/wiki/6174)). Override with `BORGKIT_PORT=<n>` or `--port <n>`.
+
+---
+
+## Common Questions
+
+### Why is Peer ID missing from the banner?
+
+```
+Peer ID      (none — set BORGKIT_DISCOVERY_TYPE=libp2p to enable P2P)
+```
+
+This is **not a bug**. A Peer ID only exists when the agent runs a libp2p host. In the default `local` discovery mode there is no libp2p host, so there is nothing to show. The agent is fully functional — it just uses in-process discovery.
+
+To get a real Peer ID (plus Kademlia DHT and P2P invocation), add these two lines to your `.env`:
+
+```env
+BORGKIT_DISCOVERY_TYPE=libp2p
+BORGKIT_AGENT_KEY=<your 64-hex-char secp256k1 private key>
+```
+
+Generate a fresh key:
+
+```bash
+# Node.js one-liner
+node -e "const {secp256k1} = require('ethereum-cryptography/secp256k1'); \
+  console.log(Buffer.from(secp256k1.utils.randomPrivateKey()).toString('hex'));"
+
+# or openssl
+openssl rand -hex 32
+```
+
+If `BORGKIT_AGENT_KEY` is omitted a random ephemeral key is generated at startup — the Peer ID will change every time the process restarts.
+
+---
+
+### Why did it feel like there was no ANR?
+
+The startup banner previously only printed the URL to the `/anr` endpoint, which made it easy to miss the fact that an ANR was live. The banner now always shows:
+
+| Line | What it means |
+|---|---|
+| `ANR` | One-line JSON preview: `agentId`, `name`, `capabilities`, `network` |
+| `ANR JSON` | The exact `curl` command to fetch the full record |
+
+Fetch the full ANR at any time:
+
+```bash
+curl -s http://localhost:6174/anr | jq .
+```
+
+The ANR is **always present** regardless of discovery mode. It is not dependent on libp2p being enabled.
+
+---
+
+### What's the difference between `local`, `http`, and `libp2p` discovery?
+
+| Mode | When to use | PeerId | Central server |
+|---|---|---|---|
+| `local` (default) | Dev / tests / single process | ✗ | ✗ |
+| `http` | Staging / enterprise / managed registry | ✗ | ✓ |
+| `libp2p` | Production P2P mesh | ✓ | ✗ |
+
+Switch modes with a single env var — no code changes required:
+
+```env
+# local (default — nothing to set)
+# http
+BORGKIT_DISCOVERY_TYPE=http
+BORGKIT_DISCOVERY_URL=https://registry.example.com
+
+# libp2p
+BORGKIT_DISCOVERY_TYPE=libp2p
+BORGKIT_AGENT_KEY=<64-hex secp256k1 private key>
+```
 
 ---
 

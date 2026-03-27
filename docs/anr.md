@@ -1,5 +1,18 @@
 # ANR — Agent Network Record
 
+## Quick reference
+
+```bash
+# Fetch the full ANR for a running agent
+curl -s http://localhost:6174/anr | jq .
+
+# The startup banner always shows a one-line preview and this exact command
+```
+
+The ANR is **always present** — it does not depend on libp2p or any discovery mode being enabled.
+
+---
+
 ## What is ANR?
 
 **ANR** stands for **Agent Network Record**.
@@ -277,3 +290,28 @@ This enables:
 - **Trustless verification** — anyone can verify an ANR without contacting the agent
 - **Revocation** — owner can invalidate a record by publishing a new one with a higher `seq`
 - **Delegation** — ERC-8004 delegation rights map directly to ANR signing authority
+
+---
+
+## Common confusion
+
+### "I couldn't find my ANR — I thought there was none"
+
+The startup banner previously only printed the URL to `/anr` without showing the record content, making it easy to assume no ANR existed. The banner now always includes:
+
+```
+ANR      {"agentId":"borgkit://agent/example","name":"ExampleAgent","capabilities":["echo","ping"],...}
+ANR JSON curl -s http://localhost:6174/anr
+```
+
+The ANR is **always generated** regardless of discovery mode (`local`, `http`, or `libp2p`). If the agent is running, `GET /anr` will return it.
+
+### "The ANR has no `secp256k1` key / the signature is empty"
+
+A complete, signed ANR requires a persistent secp256k1 private key set via:
+
+```env
+BORGKIT_AGENT_KEY=<64-hex-char secp256k1 private key>
+```
+
+Without this, a random ephemeral key is used and the record is re-signed on each startup. The ANR is still valid and fetchable, but the `secp256k1` public key and Peer ID will change between restarts. For production agents, always set a persistent `BORGKIT_AGENT_KEY`.

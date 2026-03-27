@@ -174,3 +174,36 @@ Do you need cryptoeconomic trust and on-chain verifiability?
 ```
 
 All four modes use the identical `IAgentDiscovery` interface — switching never requires changing agent logic.
+
+---
+
+## Troubleshooting
+
+### "There is no Peer ID in the banner"
+
+A Peer ID only exists when a libp2p host is running. In `local` and `http` modes there is no libp2p host, so no Peer ID is generated. This is expected behaviour.
+
+To enable libp2p (and get a real Peer ID), set in your `.env`:
+
+```env
+BORGKIT_DISCOVERY_TYPE=libp2p
+BORGKIT_AGENT_KEY=<your 64-hex secp256k1 private key>
+```
+
+If `BORGKIT_AGENT_KEY` is omitted, a random ephemeral key is generated each startup — the Peer ID will differ between runs.
+
+### "The agent says discovery type is local but I set BORGKIT_DISCOVERY_URL"
+
+`BORGKIT_DISCOVERY_URL` activates `http` discovery, not `libp2p`. To activate libp2p you need `BORGKIT_DISCOVERY_TYPE=libp2p` (the URL is unused in libp2p mode). The DiscoveryFactory priority is:
+
+```
+1. Explicit type  →  BORGKIT_DISCOVERY_TYPE=http|libp2p
+2. URL present    →  BORGKIT_DISCOVERY_URL set  →  http discovery
+3. Default        →  local
+```
+
+### "Agents can't find each other across machines"
+
+- **`local` mode** — in-process only; agents on different machines cannot see each other. Switch to `http` or `libp2p`.
+- **`http` mode** — both agents must point to the same `BORGKIT_DISCOVERY_URL`.
+- **`libp2p` mode** — agents need at least one shared bootstrap peer. Set `BORGKIT_BOOTSTRAP_PEERS=/ip4/<peer-ip>/tcp/6174/p2p/<PeerId>` or use mDNS on the same LAN (automatic, no config needed).
