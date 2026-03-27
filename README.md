@@ -991,6 +991,28 @@ python run_example.py
 | [docs/libp2p.md](docs/libp2p.md) | P2P networking with libp2p + QUIC |
 | [docs/plugins.md](docs/plugins.md) | Framework adapters — LangGraph, Google ADK, CrewAI, OpenAI, Agno, LlamaIndex, smolagents, MCP |
 | [docs/differentiation.md](docs/differentiation.md) | How Sentrix differs from other frameworks |
+| [docs/vs-a2a.md](docs/vs-a2a.md) | Sentrix vs A2A — detailed technical comparison |
+
+---
+
+## Sentrix vs A2A
+
+> **A2A defines *how* two agents talk. Sentrix defines *how agents find each other, prove who they are, and transact* — problems A2A explicitly leaves out of scope.**
+
+| | A2A | Sentrix |
+|---|---|---|
+| Discovery | You need the agent's URL; bring your own registry | Kademlia DHT — find any agent by capability, no URL needed |
+| Identity | Self-declared Agent Card, no cryptographic verification | `did:key` — keypair-derived, portable, verifiable |
+| Encryption | TLS (transport only) | DIDComm v2 — end-to-end, message-level |
+| Payments | Out of scope | x402 micropayments built in |
+| Network | Requires public HTTPS endpoint | P2P via libp2p QUIC; circuit relay for agents behind NAT |
+| Routing | Call a specific URL | Query by capability; mesh returns candidates |
+| Task model | Rich state machine (8 states, artifacts, webhooks) | Simple `/invoke` + `/invoke/stream` |
+| Enterprise auth | OAuth2, OIDC, mTLS — first-class | Via HTTP layer |
+
+They are **complementary, not competing.** A2A handles the task conversation; Sentrix handles discovery, identity, encryption, and payment. A Sentrix agent can expose an A2A-compatible endpoint — discovered via Sentrix's DHT and invoked using A2A's task protocol.
+
+→ Full analysis: **[docs/vs-a2a.md](docs/vs-a2a.md)**
 
 ---
 
