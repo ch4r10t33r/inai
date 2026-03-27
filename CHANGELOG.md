@@ -4,6 +4,12 @@ All notable changes to `sentrix-cli` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.22.0](https://github.com/ch4r10t33r/sentrix/compare/v1.21.0...v1.22.0) (2026-03-27)
+
+### Features
+
+* **mpp:** Machine Payments Protocol plugin — TypeScript, Rust, Zig ([d6ef275](https://github.com/ch4r10t33r/sentrix/commit/d6ef27557c81b24d43becc22a13d9c61bc8c260c))
+
 ## [1.21.0](https://github.com/ch4r10t33r/sentrix/compare/v1.20.0...v1.21.0) (2026-03-27)
 
 ### Features
