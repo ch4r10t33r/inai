@@ -4,6 +4,12 @@ All notable changes to `borgkit-cli` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1](https://github.com/ch4r10t33r/borgkit/compare/v0.1.0...v0.1.1) (2026-03-27)
+
+### Bug Fixes
+
+* **ci:** add sleep between npm publishes to avoid 409 registry race ([0c436b3](https://github.com/ch4r10t33r/borgkit/commit/0c436b3a36c5fb08541e2f4471042fb7d394afb2))
+
 ## [0.1.0](https://github.com/ch4r10t33r/borgkit/compare/v0.0.0...v0.1.0) (2026-03-27)
 
 ### Features
