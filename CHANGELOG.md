@@ -4,6 +4,12 @@ All notable changes to `sentrix-cli` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0](https://github.com/ch4r10t33r/sentrix/compare/v1.17.0...v1.18.0) (2026-03-27)
+
+### Features
+
+* **templates:** MCP bridge for Rust and Zig (both directions) ([d1dcf61](https://github.com/ch4r10t33r/sentrix/commit/d1dcf61fb29a65f6f487d688379f2d4d37660a5a))
+
 ## [1.17.0](https://github.com/ch4r10t33r/sentrix/compare/v1.16.0...v1.17.0) (2026-03-26)
 
 ### Features
