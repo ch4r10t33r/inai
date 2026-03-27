@@ -17,7 +17,7 @@ export function versionCommand(): void {
   console.log(`  Node.js    : ${process.version}`);
   console.log(`  Platform   : ${process.platform} ${process.arch}`);
   console.log('');
-  logger.dim('  Docs  : https://github.com/ch4r10t33r/inai/tree/main/docs');
-  logger.dim('  Issues: https://github.com/ch4r10t33r/inai/issues');
+  logger.dim('  Docs  : https://github.com/ch4r10t33r/borgkit/tree/main/docs');
+  logger.dim('  Issues: https://github.com/ch4r10t33r/borgkit/issues');
   console.log('');
 }

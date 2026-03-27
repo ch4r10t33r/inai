@@ -839,8 +839,7 @@ fn gen_rust_agent(
     lines.push("            Ok(u) => u,".into());
     lines.push("            Err(_) => {".into());
     lines.push(
-        "                eprintln!(\"[discovery] INAI_DISCOVERY_URL not set — skipping\");"
-            .into(),
+        "                eprintln!(\"[discovery] INAI_DISCOVERY_URL not set — skipping\");".into(),
     );
     lines.push("                return;".into());
     lines.push("            }".into());
@@ -848,7 +847,10 @@ fn gen_rust_agent(
     lines.push(
         "        let key  = std::env::var(\"INAI_DISCOVERY_KEY\").unwrap_or_default();".into(),
     );
-    lines.push("        let host = std::env::var(\"INAI_HOST\").unwrap_or_else(|_| \"localhost\".into());".into());
+    lines.push(
+        "        let host = std::env::var(\"INAI_HOST\").unwrap_or_else(|_| \"localhost\".into());"
+            .into(),
+    );
     lines.push("        let port: u16 = std::env::var(\"PORT\").ok().and_then(|p| p.parse().ok()).unwrap_or(6174);".into());
     lines.push("        let body = json!({".into());
     lines.push("            \"agentId\":      &self.info.agent_id,".into());
@@ -1098,7 +1100,7 @@ fn gen_zig_build_zon(name: &str, discovery: &Discovery, did: bool) -> String {
         // inai's pure-Zig Kademlia DHT (ships inside inai templates)
         dep_entries.push_str(
             r#"        .inai_discovery = .{
-            .url  = "https://github.com/ch4r10t33r/inai/archive/refs/heads/main.tar.gz",
+            .url  = "https://github.com/ch4r10t33r/borgkit/archive/refs/heads/main.tar.gz",
             .hash = "1220000000000000000000000000000000000000000000000000000000000000000000000000",
             // Run `zig fetch --save <url>` to auto-fill the hash above.
         },
@@ -1277,8 +1279,7 @@ fn gen_zig_agent(
     lines.push("        _ = disc_type;".into());
     lines.push("        const url = std.posix.getenv(\"INAI_DISCOVERY_URL\") orelse {".into());
     lines.push(
-        "            std.debug.print(\"[discovery] INAI_DISCOVERY_URL not set\\n\", .{});"
-            .into(),
+        "            std.debug.print(\"[discovery] INAI_DISCOVERY_URL not set\\n\", .{});".into(),
     );
     lines.push("            return;".into());
     lines.push("        };".into());

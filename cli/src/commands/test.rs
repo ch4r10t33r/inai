@@ -31,9 +31,7 @@ pub fn run(args: TestArgs) -> Result<()> {
 
     if args.generate {
         let name = args.agent.as_deref().ok_or_else(|| {
-            anyhow::anyhow!(
-                "--generate requires an agent name: inai test --generate <AgentName>"
-            )
+            anyhow::anyhow!("--generate requires an agent name: inai test --generate <AgentName>")
         })?;
         return generate_test(&cwd, &lang, name);
     }

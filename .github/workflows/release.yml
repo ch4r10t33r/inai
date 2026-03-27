@@ -49,6 +49,9 @@ jobs:
       - name: Semantic release
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
+        with:
+          # Use the workflow repo, not package.json "repository" (may point at a future rename).
+          repository_url: https://github.com/${{ github.repository }}.git
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

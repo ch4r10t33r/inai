@@ -1183,7 +1183,9 @@ pub fn run(args: CreateArgs) -> Result<()> {
     let agents_dir = project_root.join("agents");
 
     if !agents_dir.exists() {
-        logger::error("No \"agents/\" folder found. Are you inside a Inai project? Run inai init first.");
+        logger::error(
+            "No \"agents/\" folder found. Are you inside a Inai project? Run inai init first.",
+        );
         return Ok(());
     }
 

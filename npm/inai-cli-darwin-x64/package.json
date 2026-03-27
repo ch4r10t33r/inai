@@ -14,7 +14,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/ch4r10t33r/inai.git",
+    "url": "https://github.com/ch4r10t33r/borgkit.git",
     "directory": "npm/inai-cli-darwin-x64"
   },
   "publishConfig": {

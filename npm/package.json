@@ -9,7 +9,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ch4r10t33r/inai.git",
+    "url": "https://github.com/ch4r10t33r/borgkit.git",
     "directory": "npm/inai-cli-win32-x64"
   },
   "publishConfig": {

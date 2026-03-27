@@ -61,12 +61,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ch4r10t33r/inai.git"
+    "url": "git+https://github.com/ch4r10t33r/borgkit.git"
   },
   "bugs": {
-    "url": "https://github.com/ch4r10t33r/inai/issues"
+    "url": "https://github.com/ch4r10t33r/borgkit/issues"
   },
-  "homepage": "https://github.com/ch4r10t33r/inai#readme",
+  "homepage": "https://github.com/ch4r10t33r/borgkit#readme",
   "license": "Apache-2.0",
   "publishConfig": {
     "access": "public"
