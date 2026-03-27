@@ -179,14 +179,29 @@ Once running, the agent prints its full startup banner:
 
 | Command | Description |
 |---|---|
-| `sentrix scaffold <name> [OPTIONS]` | Generate a new agent project (see below) |
-| `sentrix init <name> [--lang ts\|python\|rust\|zig]` | Initialise a Sentrix project in-place |
+| `sentrix scaffold <name> [OPTIONS]` | Generate a minimal, targeted agent project (see below) |
+| `sentrix init <name> [--lang ts\|python\|rust\|zig]` | Copy the full template library into a new project (see below) |
 | `sentrix create agent <name> [-c cap1,cap2] [--framework X]` | Add an agent to an existing project |
 | `sentrix run <AgentName> [--port 6174]` | Start an agent's HTTP server |
 | `sentrix discover [-c capability] [--host h] [--port p]` | Query the discovery layer |
 | `sentrix version` | Show CLI version and build info |
 
-### `sentrix scaffold` — project generator
+### `sentrix scaffold` vs `sentrix init`
+
+Both create a new agent project, but they serve different workflows:
+
+| | `scaffold` | `init` |
+|---|---|---|
+| **Approach** | Generates files programmatically from flags | Copies the full embedded template library |
+| **Output** | Minimal — only what you asked for | Full kitchen sink — all discovery adapters, example agents, every template file |
+| **Customisation** | `--plugins`, `--stream`, `--x402`, `--did`, `--discovery` flags wire things together for you | Raw templates with `{{AGENT_NAME}}` token substitution — you wire things yourself |
+| **Also generates** | `.env.example`, `README.md` | `sentrix.config.json` |
+| **Best for** | Starting a focused, production-ready agent quickly | Exploring the full template library or building something custom |
+| **Languages** | TypeScript, Rust, Zig | TypeScript, Python, Rust, Zig |
+
+> **Rule of thumb:** use `scaffold` when you know what you want; use `init` when you want to browse all available patterns and pick your own path.
+
+### `sentrix scaffold` — targeted project generator
 
 ```bash
 sentrix scaffold <name> [OPTIONS]
@@ -229,6 +244,27 @@ my-agent/
 │       └── LangGraphPlugin.ts
 ├── .env.example
 └── README.md
+```
+
+### `sentrix init` — full template copy
+
+```bash
+sentrix init <name> [OPTIONS]
+
+Options:
+  -l, --lang <LANG>     typescript | python | rust | zig   [default: typescript]
+      --no-discovery    skip copying discovery adapter files
+      --no-example      skip copying example agent files
+```
+
+Copies the **entire template library** for the chosen language into `<name>/`, applies token substitution (`{{AGENT_NAME}}`, `{{PROJECT_NAME}}`, etc.), and writes a `sentrix.config.json`. The result is a fully-populated project containing every discovery adapter, all plugin stubs, and complete example agents — ready to explore and trim down.
+
+```bash
+# Full TypeScript project with everything included
+sentrix init my-project --lang typescript
+
+# Rust project without the example agent files
+sentrix init my-project --lang rust --no-example
 ```
 
 ### `sentrix run` — HTTP endpoints
