@@ -4,6 +4,12 @@ All notable changes to `sentrix-cli` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.0](https://github.com/ch4r10t33r/sentrix/compare/v1.20.0...v1.21.0) (2026-03-27)
+
+### Features
+
+* **didcomm:** DIDComm v2 encrypted messaging — TypeScript, Rust, Zig ([6698342](https://github.com/ch4r10t33r/sentrix/commit/669834200b6a9c99dcd0df131df5643bb0b4b892))
+
 ## [1.20.0](https://github.com/ch4r10t33r/sentrix/compare/v1.19.0...v1.20.0) (2026-03-27)
 
 ### Features
