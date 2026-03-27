@@ -2,6 +2,7 @@ pub mod agent;
 pub mod addons;
 pub mod client;
 pub mod did_key_example;
+pub mod didcomm;
 pub mod discovery;
 pub mod discovery_http;
 pub mod discovery_libp2p;

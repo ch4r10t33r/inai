@@ -5,6 +5,37 @@ use async_trait::async_trait;
 
 /// ERC-8004 compliant agent trait.
 /// Every Sentrix agent must implement this.
+///
+/// # DIDComm v2 encrypted messaging
+///
+/// To send or receive end-to-end encrypted messages between agents, use
+/// [`crate::didcomm::DidcommClient`]. Example:
+///
+/// ```rust
+/// use crate::didcomm::{DidcommClient, MSG_INVOKE};
+/// use serde_json::json;
+///
+/// // One-time setup: generate a persistent did:key keypair for this agent
+/// let my_client = DidcommClient::generate().unwrap();
+///
+/// // sendEncrypted: invoke a remote agent over an encrypted DIDComm channel
+/// let recipient_did = "did:key:z6Mk..."; // obtain from remote agent's ANR
+/// let encrypted = my_client.invoke(recipient_did, "translate", json!({"text": "hello"}), false).unwrap();
+/// // → ship `encrypted` (serialized as JSON) over HTTP/libp2p to the recipient
+///
+/// // receiveEncrypted: decrypt an incoming DIDComm envelope
+/// let (message, sender_did) = my_client.unpack(&encrypted).unwrap();
+/// println!("{}", message.body);   // {"capability":"translate","input":{"text":"hello"}}
+/// println!("{:?}", sender_did);   // Some("did:key:z6Mk...") — None for anoncrypt
+///
+/// // Anonymous send (recipient cannot identify the sender):
+/// let anon_msg = my_client.invoke(recipient_did, "ping", json!({}), true).unwrap();
+///
+/// // Reply to an incoming INVOKE:
+/// if let Some(sender) = sender_did {
+///     let reply = my_client.respond(&sender, &message.id, json!({"status": "ok"})).unwrap();
+/// }
+/// ```
 #[async_trait]
 pub trait IAgent: Send + Sync {
     // ── ERC-8004 Identity ──────────────────────────────────────────────────

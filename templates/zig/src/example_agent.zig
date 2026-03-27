@@ -7,6 +7,46 @@
 //!   4. Using AgentClient to discover and call another agent.
 //!
 //! Replace the capability implementations with your own logic.
+//!
+//! ── DIDComm v2 encrypted messaging ───────────────────────────────────────────
+//! To send or receive end-to-end encrypted messages between agents, use the
+//! `DidcommClient` from `didcomm.zig`. Example:
+//!
+//!   const didcomm = @import("didcomm.zig");
+//!
+//!   // One-time setup: generate a persistent did:key keypair for this agent
+//!   var my_client = try didcomm.DidcommClient.generate(allocator);
+//!   defer my_client.deinit();
+//!
+//!   // sendEncrypted: invoke a remote agent over an encrypted DIDComm channel
+//!   const recipient_did = "did:key:z6Mk..."; // obtain from remote agent's ANR
+//!   const encrypted = try my_client.invoke(
+//!       allocator, recipient_did, "translate",
+//!       \\{"text":"hello"}
+//!   , false);
+//!   defer allocator.free(encrypted);
+//!   // → ship `encrypted` (JSON string) over HTTP/libp2p to the recipient
+//!
+//!   // receiveEncrypted: decrypt an incoming DIDComm envelope
+//!   const result = try my_client.unpack(allocator, encrypted);
+//!   defer result.deinit(allocator);
+//!   std.log.info("body: {s}", .{result.message.body_json});
+//!   // sender_did is null for anoncrypt messages
+//!   if (result.sender_did) |sender| std.log.info("from: {s}", .{sender});
+//!
+//!   // Anonymous send (recipient cannot identify the sender):
+//!   const anon_msg = try my_client.invoke(
+//!       allocator, recipient_did, "ping", "{}", true);
+//!   defer allocator.free(anon_msg);
+//!
+//!   // Reply to an incoming INVOKE:
+//!   if (result.sender_did) |sender| {
+//!       const reply = try my_client.respond(
+//!           allocator, sender, result.message.id,
+//!           \\{"status":"ok"}
+//!       );
+//!       defer allocator.free(reply);
+//!   }
 
 const std = @import("std");
 const types = @import("types.zig");

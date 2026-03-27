@@ -7,6 +7,32 @@ import { DiscoveryEntry,
 /**
  * ExampleAgent — starter template.
  * Replace the capability implementations with your own logic.
+ *
+ * ── DIDComm v2 encrypted messaging ───────────────────────────────────────────
+ * To send or receive end-to-end encrypted messages between agents, use the
+ * DidcommClient from `../didcomm`. Example:
+ *
+ *   import { DidcommClient, MessageTypes } from '../didcomm';
+ *
+ *   // One-time setup: generate a persistent did:key keypair for this agent
+ *   const myKeys = DidcommClient.generateKeyPair();
+ *   const client = new DidcommClient(myKeys);
+ *
+ *   // sendEncrypted: invoke a remote agent over an encrypted DIDComm channel
+ *   const recipientDid = 'did:key:z6Mk...'; // obtain from remote agent's ANR
+ *   const encrypted = await client.invoke(recipientDid, 'translate', { text: 'hello' });
+ *   // → ship `encrypted` (JSON) over HTTP/libp2p to the recipient
+ *
+ *   // receiveEncrypted: decrypt an incoming envelope (e.g. from POST /didcomm)
+ *   const { message, senderDid } = await client.unpack(encrypted);
+ *   console.log(message.body);    // { capability: 'translate', input: { text: 'hello' } }
+ *   console.log(senderDid);       // 'did:key:z6Mk...' (null for anoncrypt)
+ *
+ *   // Anonymous send (recipient cannot identify sender):
+ *   const anonMsg = await client.invoke(recipientDid, 'ping', {}, { anon: true });
+ *
+ *   // Reply to an incoming INVOKE:
+ *   const reply = await client.respond(senderDid!, message.id, { status: 'ok' });
  */
 export class ExampleAgent implements IAgent {
   // ─── ERC-8004 Identity ────────────────────────────────────────────────────
