@@ -28,10 +28,10 @@
     "node": ">=18.0.0"
   },
   "license": "Apache-2.0",
-  "homepage": "https://github.com/ch4r10t33r/borgkit",
+  "homepage": "https://github.com/ch4r10t33r/inai",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ch4r10t33r/borgkit.git",
+    "url": "https://github.com/ch4r10t33r/inai.git",
     "directory": "npm/inai-cli"
   },
   "publishConfig": {

@@ -39,7 +39,7 @@ const suffix = (PLATFORMS[process.platform] || {})[process.arch];
 if (!suffix) {
   console.error(
     `\n  inai: unsupported platform: ${process.platform}/${process.arch}\n` +
-    `  Please open an issue: https://github.com/ch4r10t33r/borgkit/issues\n`
+    `  Please open an issue: https://github.com/ch4r10t33r/inai/issues\n`
   );
   process.exit(1);
 }

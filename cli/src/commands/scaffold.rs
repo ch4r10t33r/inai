@@ -1100,7 +1100,7 @@ fn gen_zig_build_zon(name: &str, discovery: &Discovery, did: bool) -> String {
         // inai's pure-Zig Kademlia DHT (ships inside inai templates)
         dep_entries.push_str(
             r#"        .inai_discovery = .{
-            .url  = "https://github.com/ch4r10t33r/borgkit/archive/refs/heads/main.tar.gz",
+            .url  = "https://github.com/ch4r10t33r/inai/archive/refs/heads/main.tar.gz",
             .hash = "1220000000000000000000000000000000000000000000000000000000000000000000000000",
             // Run `zig fetch --save <url>` to auto-fill the hash above.
         },

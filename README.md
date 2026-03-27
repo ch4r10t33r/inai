@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ch4r10t33r/borgkit/main/docs/logo.svg" alt="Inai" width="220"/>
+  <img src="https://raw.githubusercontent.com/ch4r10t33r/inai/main/docs/logo.svg" alt="Inai" width="220"/>
 </p>
 
 # Inai
@@ -108,24 +108,24 @@ npm install -g @ch4r10teer41/inai-cli
 Auto-detects your OS and architecture, installs to `/usr/local/bin`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ch4r10t33r/borgkit/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/ch4r10t33r/inai/main/install.sh | sh
 ```
 
 To install to a custom directory set `INAI_INSTALL_DIR` before piping:
 
 ```bash
-INAI_INSTALL_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/ch4r10t33r/borgkit/main/install.sh | sh
+INAI_INSTALL_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/ch4r10t33r/inai/main/install.sh | sh
 ```
 
 > **Windows** — use npm above, or download `inai-win32-x64.exe` directly from the
-> [Releases page](https://github.com/ch4r10t33r/borgkit/releases/latest).
+> [Releases page](https://github.com/ch4r10t33r/inai/releases/latest).
 
 ### Build from source
 
 Requires [Rust](https://rustup.rs) 1.75+.
 
 ```bash
-git clone https://github.com/ch4r10t33r/borgkit.git
+git clone https://github.com/ch4r10t33r/inai.git
 cd inai
 cargo build --release --package inai-cli
 # Binary is at ./target/release/inai
@@ -1048,7 +1048,7 @@ The HTTP server gate is automatic — no code needed in the agent. Callers recei
 [`examples/cross-framework/`](examples/cross-framework/) is a working end-to-end demo you can run right now:
 
 ```bash
-git clone https://github.com/ch4r10t33r/borgkit
+git clone https://github.com/ch4r10t33r/inai
 python3 examples/cross-framework/run.py
 ```
 

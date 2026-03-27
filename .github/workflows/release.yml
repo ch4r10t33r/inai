@@ -50,7 +50,7 @@ jobs:
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
         with:
-          # Use the workflow repo, not package.json "repository" (may point at a future rename).
+          # Must match GitHub repo slug (package.json + .releaserc repositoryUrl should match too).
           repository_url: https://github.com/${{ github.repository }}.git
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
