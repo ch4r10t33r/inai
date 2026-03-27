@@ -75,8 +75,8 @@ Sentrix operates primarily at **L2** and **L3**, bridging L1 identity to L4 fram
 | **Agno plugin** | ✅ | ✅ | ✅ | ✅ |
 | **LlamaIndex plugin** | ✅ | ✅ | ✅ | ✅ |
 | **smolagents plugin** | ✅ | ✅ | ✅ | ✅ |
-| **MCP bridge (wrap MCP servers)** | ✅ | ✅ | — | — |
-| **MCP bridge (expose as MCP server)** | ✅ | ✅ | — | — |
+| **MCP bridge (wrap MCP servers)** | ✅ | ✅ | ✅ | ✅ |
+| **MCP bridge (expose as MCP server)** | ✅ | ✅ | ✅ | ✅ |
 | **x402 micropayments** | ✅ | ✅ | ✅ | ✅ |
 | **Streaming (SSE via /invoke/stream)** | ✅ | ✅ | ✅ | ✅ |
 
@@ -385,6 +385,45 @@ await plugin.wrap().serve({ port: 8081 });
 
 await serveAsMcp(myAgent);                              // stdio
 await serveAsMcp(myAgent, { transport: 'sse', port: 3000 });
+```
+
+```rust
+// Rust — stdio subprocess or HTTP endpoint
+use sentrix::mcp::{McpPlugin, serve_as_mcp, ServeMcpOptions, Transport};
+use sentrix::plugins::base::PluginConfig;
+
+// Wrap an MCP server (subprocess) → Sentrix agent
+let agent = McpPlugin::from_command(
+    &["npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+    PluginConfig { agent_id: "sentrix://agent/fs".into(), .. },
+    None,
+).await?;
+sentrix::server::serve(agent, 8081).await?;
+
+// Expose a Sentrix agent → MCP server (stdio for Claude Desktop)
+serve_as_mcp(my_agent, ServeMcpOptions::default()).await?;
+
+// Expose over SSE (remote clients)
+serve_as_mcp(my_agent, ServeMcpOptions {
+    transport: Transport::Sse, port: 3000, ..Default::default()
+}).await?;
+```
+
+```zig
+// Zig — stdio subprocess or HTTP endpoint
+const mcp_plugin = @import("mcp_plugin.zig");
+const mcp_server = @import("mcp_server.zig");
+
+// Wrap an MCP server (subprocess) → Sentrix agent
+var plugin = mcp_plugin.McpPlugin.initStdio(allocator);
+defer plugin.deinit();
+try plugin.fromCommand(&.{ "npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp" }, null);
+
+// Expose a Sentrix agent → MCP server (stdio for Claude Desktop)
+try mcp_server.serveAsMcp(MyAgent, &my_agent, .{}, allocator);
+
+// Expose over HTTP (POST /mcp)
+try mcp_server.serveAsMcp(MyAgent, &my_agent, .{ .transport = .http, .port = 3000 }, allocator);
 ```
 
 → Full guide: **[docs/mcp.md](docs/mcp.md)**
