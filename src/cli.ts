@@ -28,7 +28,7 @@ program
   .description('Generate a new agent inside an existing Inai project')
   .option('-l, --lang <language>', 'Target language (auto-detected from project if omitted)')
   .option('-c, --capabilities <caps>', 'Comma-separated list of capability names', 'exampleCapability')
-  .option('-f, --framework <framework>', 'Agent framework: none | google-adk | crewai | langgraph | agno | llamaindex | smolagents', 'none')
+  .option('-f, --framework <framework>', 'Agent framework: none | google-adk | crewai | langgraph | agno | llamaindex | smolagents | hermes', 'none')
   .option('--addon <addon>', 'Optional add-on: x402')
   .option('-y, --yes', 'Skip confirmation prompts and auto-install dependencies')
   .action(createCommand);

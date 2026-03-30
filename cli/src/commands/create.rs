@@ -37,6 +37,7 @@ pub enum Framework {
     Agno,
     LlamaIndex,
     Smolagents,
+    Hermes,
 }
 
 impl Framework {
@@ -48,6 +49,7 @@ impl Framework {
             "agno" => Self::Agno,
             "llamaindex" => Self::LlamaIndex,
             "smolagents" => Self::Smolagents,
+            "hermes" | "hermesagent" => Self::Hermes,
             _ => Self::None,
         }
     }
@@ -61,6 +63,7 @@ impl Framework {
             Self::Agno => "agno",
             Self::LlamaIndex => "llamaindex",
             Self::Smolagents => "smolagents",
+            Self::Hermes => "hermes",
         }
     }
 
@@ -86,12 +89,18 @@ impl Framework {
                 Some("pip install llama-index llama-index-llms-openai")
             }
             (Self::Smolagents, Lang::Python) => Some("pip install smolagents"),
+            (Self::Hermes, Lang::Python) => {
+                Some("pip install git+https://github.com/NousResearch/hermes-agent.git")
+            }
             _ => None,
         }
     }
 
     fn is_python_only(&self) -> bool {
-        matches!(self, Self::CrewAi | Self::Agno | Self::Smolagents)
+        matches!(
+            self,
+            Self::CrewAi | Self::Agno | Self::Smolagents | Self::Hermes
+        )
     }
 }
 
@@ -475,6 +484,12 @@ export const {name}: IAgent = {{
 // ── Template: TypeScript × smolagents — fallback (Python-only) ───────────────
 
 fn template_ts_smolagents(name: &str, caps: &[String]) -> String {
+    template_ts_none(name, caps)
+}
+
+// ── Template: TypeScript × hermes — fallback (Python-only) ────────────────────
+
+fn template_ts_hermes(name: &str, caps: &[String]) -> String {
     template_ts_none(name, caps)
 }
 
@@ -959,6 +974,60 @@ _agent = ToolCallingAgent(
     )
 }
 
+// ── Template: Python × hermes ─────────────────────────────────────────────────
+
+fn template_py_hermes(name: &str, caps: &[String]) -> String {
+    let snake = snake_case(name);
+
+    let mesh_list = if caps.is_empty() {
+        r#"["chat"]"#.to_string()
+    } else {
+        let inner: Vec<String> = caps.iter().map(|c| format!(r#""{c}""#)).collect();
+        format!("[{}]", inner.join(", "))
+    };
+
+    let tags_dq: Vec<String> = caps.iter().map(|c| format!(r#""{c}""#)).collect();
+    let tags_str = {
+        let mut v = tags_dq.clone();
+        v.push(r#""hermes""#.to_string());
+        v.join(", ")
+    };
+
+    format!(
+        r#""""
+{name} — Nous Research Hermes agent, wrapped for the Inai mesh.
+
+Each name in `mesh_capabilities` is a separate Inai capability; all forward
+to the same Hermes `AIAgent`.  Request payloads use keys: message, task,
+query, or input.
+
+Install: pip install git+https://github.com/NousResearch/hermes-agent.git
+Docs: https://hermes-agent.nousresearch.com/docs/guides/python-library
+"""
+from run_agent                  import AIAgent
+from plugins.hermes_plugin      import wrap_hermes
+
+
+_agent = AIAgent(
+    model="openai/gpt-4o-mini",
+    quiet_mode=True,
+    skip_memory=True,
+    skip_context_files=True,
+)
+
+
+{name} = wrap_hermes(
+    agent             = _agent,
+    name              = "{name}",
+    agent_id          = "inai://agent/{snake}",
+    owner             = "0xYourWalletAddress",
+    tags              = [{tags_str}],
+    mesh_capabilities = {mesh_list},
+)
+"#
+    )
+}
+
 // ── Template: Rust × none ─────────────────────────────────────────────────────
 
 fn template_rs_none(name: &str, caps: &[String]) -> String {
@@ -1024,6 +1093,10 @@ fn template_rs_smolagents(name: &str, caps: &[String]) -> String {
     template_rs_none(name, caps)
 }
 
+fn template_rs_hermes(name: &str, caps: &[String]) -> String {
+    template_rs_none(name, caps)
+}
+
 // ── Template: Zig × none ──────────────────────────────────────────────────────
 
 fn template_zig_none(name: &str, caps: &[String]) -> String {
@@ -1086,6 +1159,10 @@ fn template_zig_smolagents(name: &str, caps: &[String]) -> String {
     template_zig_none(name, caps)
 }
 
+fn template_zig_hermes(name: &str, caps: &[String]) -> String {
+    template_zig_none(name, caps)
+}
+
 // ── Template dispatch ─────────────────────────────────────────────────────────
 
 fn generate(lang: &Lang, framework: &Framework, name: &str, caps: &[String]) -> String {
@@ -1098,6 +1175,7 @@ fn generate(lang: &Lang, framework: &Framework, name: &str, caps: &[String]) -> 
         (Lang::TypeScript, Framework::Agno) => template_ts_agno(name, caps),
         (Lang::TypeScript, Framework::LlamaIndex) => template_ts_llamaindex(name, caps),
         (Lang::TypeScript, Framework::Smolagents) => template_ts_smolagents(name, caps),
+        (Lang::TypeScript, Framework::Hermes) => template_ts_hermes(name, caps),
         // Python
         (Lang::Python, Framework::None) => template_py_none(name, caps),
         (Lang::Python, Framework::GoogleAdk) => template_py_google_adk(name, caps),
@@ -1106,6 +1184,7 @@ fn generate(lang: &Lang, framework: &Framework, name: &str, caps: &[String]) -> 
         (Lang::Python, Framework::Agno) => template_py_agno(name, caps),
         (Lang::Python, Framework::LlamaIndex) => template_py_llamaindex(name, caps),
         (Lang::Python, Framework::Smolagents) => template_py_smolagents(name, caps),
+        (Lang::Python, Framework::Hermes) => template_py_hermes(name, caps),
         // Rust
         (Lang::Rust, Framework::None) => template_rs_none(name, caps),
         (Lang::Rust, Framework::GoogleAdk) => template_rs_google_adk(name, caps),
@@ -1114,6 +1193,7 @@ fn generate(lang: &Lang, framework: &Framework, name: &str, caps: &[String]) -> 
         (Lang::Rust, Framework::Agno) => template_rs_agno(name, caps),
         (Lang::Rust, Framework::LlamaIndex) => template_rs_llamaindex(name, caps),
         (Lang::Rust, Framework::Smolagents) => template_rs_smolagents(name, caps),
+        (Lang::Rust, Framework::Hermes) => template_rs_hermes(name, caps),
         // Zig
         (Lang::Zig, Framework::None) => template_zig_none(name, caps),
         (Lang::Zig, Framework::GoogleAdk) => template_zig_google_adk(name, caps),
@@ -1122,6 +1202,7 @@ fn generate(lang: &Lang, framework: &Framework, name: &str, caps: &[String]) -> 
         (Lang::Zig, Framework::Agno) => template_zig_agno(name, caps),
         (Lang::Zig, Framework::LlamaIndex) => template_zig_llamaindex(name, caps),
         (Lang::Zig, Framework::Smolagents) => template_zig_smolagents(name, caps),
+        (Lang::Zig, Framework::Hermes) => template_zig_hermes(name, caps),
     }
 }
 

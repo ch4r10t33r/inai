@@ -160,6 +160,66 @@ await agent.register_discovery()
 
 ---
 
+## Hermes plugin (Nous Research)
+
+Wraps a Hermes [`AIAgent`](https://hermes-agent.nousresearch.com/docs/guides/python-library) from `run_agent`. Hermes is a full agent runtime (built-in toolsets); Inai **mesh capabilities** are configurable labels that all route to the same `chat()` or `run_conversation()` entrypoint — unlike CrewAI/LangGraph, you do not register arbitrary Python `@tool` functions per capability.
+
+### Install
+
+Hermes is often installed from source (not always on PyPI):
+
+```bash
+pip install git+https://github.com/NousResearch/hermes-agent.git
+```
+
+Set provider keys as documented upstream (for example `OPENROUTER_API_KEY`).
+
+### Usage
+
+```python
+from run_agent import AIAgent
+from plugins.hermes_plugin import wrap_hermes
+
+_agent = AIAgent(
+    model="openai/gpt-4o-mini",
+    quiet_mode=True,
+    skip_memory=True,
+    skip_context_files=True,
+)
+
+agent = wrap_hermes(
+    agent=_agent,
+    name="HermesMesh",
+    agent_id="inai://agent/hermes",
+    owner="0xYourWallet",
+    tags=["hermes", "nous"],
+    mesh_capabilities=["chat", "research"],
+)
+
+await agent.register_discovery()
+```
+
+Callers should send a user message in the payload using one of: `message`, `task`, `query`, or `input`. Optional keys: `run_conversation`, `task_id`, `system_message`, `conversation_history`.
+
+### Config options (`HermesPluginConfig`)
+
+| Option | Default | Description |
+|---|---|---|
+| `mesh_capabilities` | `["chat"]` | Capability names advertised on the mesh |
+| `use_run_conversation` | `False` | Default to `run_conversation` instead of `chat()` |
+| `prefix_capability_in_message` | `True` | Prefix with `[Inai capability: …]` for context |
+| `default_task_id` | `None` | Fixed `task_id` for `run_conversation` when not supplied per request |
+
+Other fields inherit from `PluginConfig` (identity, discovery, `timeout_ms`, etc.).
+
+### CLI scaffolding
+
+```bash
+inai create agent MyHermes --lang python --framework hermes -c chat,research
+```
+
+---
+
 ## Writing a custom plugin
 
 To integrate any other framework, subclass `InaiPlugin` and implement the four methods:

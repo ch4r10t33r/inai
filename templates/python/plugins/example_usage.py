@@ -175,7 +175,54 @@ async def example_multi_framework():
     print("All agents on mesh:", [a.agent_id for a in await registry.list_all()])
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Example 3: Hermes (Nous Research) → Inai
+# ─────────────────────────────────────────────────────────────────────────────
+
+async def example_hermes():
+    """
+    Wraps a Hermes AIAgent as mesh capabilities (git install, provider API keys).
+    """
+    try:
+        from run_agent import AIAgent
+    except ImportError:
+        print("[skip] Hermes not installed (pip install git+https://github.com/NousResearch/hermes-agent.git)")
+        return
+
+    from plugins.hermes_plugin import wrap_hermes
+
+    _agent = AIAgent(
+        model="openai/gpt-4o-mini",
+        quiet_mode=True,
+        skip_memory=True,
+        skip_context_files=True,
+    )
+
+    agent = wrap_hermes(
+        agent=_agent,
+        name="HermesDemo",
+        agent_id="inai://agent/hermes_demo",
+        owner="0xYourWalletAddress",
+        tags=["hermes", "demo"],
+        mesh_capabilities=["chat", "research"],
+    )
+
+    print("Capabilities:", agent.get_capabilities())
+
+    from interfaces import AgentRequest
+
+    req = AgentRequest(
+        request_id="req-hermes-1",
+        from_id="0xCaller",
+        capability="chat",
+        payload={"message": "Say hello in one short sentence."},
+    )
+    resp = await agent.handle_request(req)
+    print("Response:", resp.result)
+
+
 if __name__ == "__main__":
     asyncio.run(example_multi_framework())   # works without any ML deps
     # asyncio.run(example_langgraph())       # requires LangGraph + OpenAI key
     # asyncio.run(example_google_adk())      # requires google-adk + Gemini key
+    # asyncio.run(example_hermes())          # requires hermes-agent + provider keys

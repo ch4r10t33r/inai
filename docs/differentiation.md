@@ -70,7 +70,7 @@ SentriX introduces a **protocol layer for agents**, analogous to how TCP/IP enab
 ### Core Principles
 
 1. **Framework Agnostic**
-   - Agents can be built using any framework (LangGraph, Google ADK, etc.)
+   - Agents can be built using any framework (LangGraph, Google ADK, Hermes, etc.)
    - SentriX provides adapters/plugins for interoperability
 
 2. **Discoverability by Design**

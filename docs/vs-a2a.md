@@ -112,7 +112,7 @@ This matters for:
 
 **A2A:** Framework-agnostic in theory, but most implementations are Python or TypeScript. There is no native concept of "this agent runs LangGraph" vs "this agent runs CrewAI".
 
-**Inai:** First-class framework plugins for LangGraph, Google ADK, CrewAI, OpenAI Agents SDK, Agno, LlamaIndex, smolagents, and MCP — in TypeScript, Rust, and Zig. A LangGraph agent and a CrewAI agent and a Rust agent all speak the same Inai mesh protocol. Framework identity is part of the ANR.
+**Inai:** First-class framework plugins for LangGraph, Google ADK, CrewAI, OpenAI Agents SDK, Agno, LlamaIndex, smolagents, Hermes (Nous Research), and MCP — in TypeScript, Rust, and Zig. A LangGraph agent and a CrewAI agent and a Rust agent all speak the same Inai mesh protocol. Framework identity is part of the ANR.
 
 ### 8. Embedded and Resource-Constrained Deployment
 

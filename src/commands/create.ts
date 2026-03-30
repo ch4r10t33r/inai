@@ -9,7 +9,7 @@ import { logger }         from '../utils/logger';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type Framework = 'none' | 'google-adk' | 'crewai' | 'langgraph' | 'agno' | 'llamaindex' | 'smolagents';
+export type Framework = 'none' | 'google-adk' | 'crewai' | 'langgraph' | 'agno' | 'llamaindex' | 'smolagents' | 'hermes';
 
 interface CreateOptions {
   lang?:         string;
@@ -52,6 +52,9 @@ const INSTALL_HINTS: Record<Framework, Partial<Record<string, string>>> = {
   },
   'smolagents': {
     python: 'pip install smolagents',
+  },
+  'hermes': {
+    python: 'pip install git+https://github.com/NousResearch/hermes-agent.git',
   },
 };
 
@@ -594,6 +597,53 @@ ${name} = wrap_smolagents(
 `,
 };
 
+// ── FRAMEWORK: hermes ─────────────────────────────────────────────────────────
+
+const HERMES_TEMPLATES: LangTemplates = {
+
+  python: (name, caps) => {
+    const meshList =
+      caps.length > 0
+        ? `[${caps.map(c => `"${c}"`).join(', ')}]`
+        : '["chat"]';
+    const tagInner =
+      caps.length > 0
+        ? `${caps.map(c => `"${c}"`).join(', ')}, "hermes"`
+        : '"hermes"';
+    return `"""
+${name} — Nous Research Hermes agent, wrapped for the Inai mesh.
+
+Each name in \`mesh_capabilities\` is a separate Inai capability; all forward
+to the same Hermes \`AIAgent\`.  Request payloads use keys: message, task,
+query, or input.
+
+Install: pip install git+https://github.com/NousResearch/hermes-agent.git
+Docs: https://hermes-agent.nousresearch.com/docs/guides/python-library
+"""
+from run_agent                  import AIAgent
+from plugins.hermes_plugin      import wrap_hermes
+
+
+_agent = AIAgent(
+    model="openai/gpt-4o-mini",
+    quiet_mode=True,
+    skip_memory=True,
+    skip_context_files=True,
+)
+
+
+${name} = wrap_hermes(
+    agent             = _agent,
+    name              = "${name}",
+    agent_id          = "inai://agent/${toSnake(name)}",
+    owner             = "0xYourWalletAddress",
+    tags              = [${tagInner}],
+    mesh_capabilities = ${meshList},
+)
+`;
+  },
+};
+
 // ── Template dispatch table ───────────────────────────────────────────────────
 
 const FRAMEWORK_TEMPLATES: Record<Framework, LangTemplates> = {
@@ -604,6 +654,7 @@ const FRAMEWORK_TEMPLATES: Record<Framework, LangTemplates> = {
   'agno':        AGNO_TEMPLATES,
   'llamaindex':  LLAMAINDEX_TEMPLATES,
   'smolagents':  SMOLAGENTS_TEMPLATES,
+  'hermes':      HERMES_TEMPLATES,
 };
 
 // ── createCommand ─────────────────────────────────────────────────────────────
@@ -718,7 +769,7 @@ export async function createCommand(
   }
 
   // Some frameworks are Python-only — print a note if user asked for another language
-  const PYTHON_ONLY_FRAMEWORKS: Framework[] = ['crewai', 'agno', 'smolagents'];
+  const PYTHON_ONLY_FRAMEWORKS: Framework[] = ['crewai', 'agno', 'smolagents', 'hermes'];
   if (PYTHON_ONLY_FRAMEWORKS.includes(framework) && lang !== 'python') {
     console.log('');
     console.log(chalk.yellow(
