@@ -33,7 +33,7 @@ Switch between them with a single environment variable (`INAI_DISCOVERY_URL`) or
 
 ### 3. Framework-agnostic by design
 
-Inai does not care how your agent is built. Bring your existing LangGraph graph, Google ADK agent, or custom logic and wrap it with a **InaiPlugin** in one function call:
+Inai does not care how your agent is built. Bring your existing LangGraph graph, Google ADK agent, Hermes (`AIAgent`), or custom logic and wrap it with a **InaiPlugin** in one function call:
 
 ```python
 agent = wrap_langgraph(graph, name="Researcher", agent_id="inai://agent/researcher")
@@ -72,7 +72,7 @@ inai/
     ├── anr.md                  # Agent Network Record spec
     ├── interfaces.md           # IAgent · IAgentRequest · IAgentResponse · IAgentDiscovery
     ├── discovery.md            # Discovery layer & adapters
-    ├── plugins.md              # InaiPlugin · LangGraph · Google ADK
+    ├── plugins.md              # InaiPlugin · LangGraph · Google ADK · Hermes · …
     ├── version-management.md   # Versioning & changelog policy
     └── examples/
         ├── 01-hello-agent.md         # Defining your first agent

@@ -28,7 +28,7 @@ Inai is **not a platform** — it is a protocol layer others build on.
 
 | Layer | Role | Technologies |
 |---|---|---|
-| **L4** Execution | Agent frameworks | LangGraph · Google ADK · CrewAI · Agno · LlamaIndex · smolagents · OpenAI Agents |
+| **L4** Execution | Agent frameworks | LangGraph · Google ADK · CrewAI · Agno · LlamaIndex · smolagents · Hermes · OpenAI Agents |
 | **L3** Interaction | Request / response | `AgentRequest` / `AgentResponse` · AMP-2 |
 | **L2** Discovery | Capability lookup | Local · HTTP · libp2p + Kademlia DHT · AMP-1 |
 | **L1** Identity | DID + trust | `did:key` W3C (default) · ERC-8004 on-chain (optional) |
@@ -39,7 +39,7 @@ Inai operates primarily at **L2** and **L3**, bridging L1 identity to L4 framewo
 
 ## Features
 
-- **Framework-agnostic** — wrap LangGraph, Google ADK, CrewAI, Agno, LlamaIndex, smolagents, or OpenAI Agents with one function call
+- **Framework-agnostic** — wrap LangGraph, Google ADK, CrewAI, Agno, LlamaIndex, smolagents, Hermes (Nous Research), or OpenAI Agents with one function call
 - **Built-in HTTP server** — `inai run MyAgent --port 6174` starts a real HTTP server; no extra setup
 - **MCP bridge** — any MCP server becomes a Inai agent; any Inai agent becomes an MCP server (Claude Desktop, Cursor, Continue)
 - **Dynamic discovery** — agents register capabilities; callers query at runtime, no hardcoded URLs
@@ -76,6 +76,7 @@ Inai operates primarily at **L2** and **L3**, bridging L1 identity to L4 framewo
 | **Agno plugin** | ✅ | ✅ | ✅ | ✅ |
 | **LlamaIndex plugin** | ✅ | ✅ | ✅ | ✅ |
 | **smolagents plugin** | ✅ | ✅ | ✅ | ✅ |
+| **Hermes plugin** (Nous Research `AIAgent`) | ✅ | ✅ | ✅ | ✅ |
 | **MCP bridge (wrap MCP servers)** | ✅ | ✅ | ✅ | ✅ |
 | **MCP bridge (expose as MCP server)** | ✅ | ✅ | ✅ | ✅ |
 | **x402 micropayments** | ✅ | ✅ | ✅ | ✅ |
@@ -284,7 +285,7 @@ INAI_DISCOVERY_URL=https://registry.example.com
 |---|---|
 | `inai scaffold <name> [OPTIONS]` | Generate a minimal, targeted agent project (see below) |
 | `inai init <name> [--lang ts\|python\|rust\|zig]` | Copy the full template library into a new project (see below) |
-| `inai create agent <name> [-c cap1,cap2] [--framework X]` | Add an agent to an existing project |
+| `inai create agent <name> [-c cap1,cap2] [--framework X]` | Add an agent to an existing project (`X`: `none`, `google-adk`, `crewai`, `langgraph`, `agno`, `llamaindex`, `smolagents`, `hermes`) |
 | `inai run <AgentName> [--port 6174]` | Start an agent's HTTP server |
 | `inai discover [-c capability] [--host h] [--port p]` | Query the discovery layer |
 | `inai version` | Show CLI version and build info |
@@ -411,6 +412,12 @@ from plugins.agno_plugin       import wrap_agno
 from plugins.llamaindex_plugin import wrap_llamaindex
 from plugins.smolagents_plugin import wrap_smolagents
 
+# Hermes (Nous Research) — Python only; pip install git+https://github.com/NousResearch/hermes-agent.git
+from run_agent import AIAgent
+from plugins.hermes_plugin import wrap_hermes
+_hermes = AIAgent(model="openai/gpt-4o-mini", quiet_mode=True, skip_memory=True, skip_context_files=True)
+agent = wrap_hermes(_hermes, name="HermesBot", agent_id="inai://agent/hermes", owner="0x...", mesh_capabilities=["chat", "research"])
+
 # Serve over HTTP (all plugins share the same interface)
 import asyncio
 asyncio.run(agent.serve(port=6174))
@@ -449,6 +456,8 @@ const agent = wrapOpenAI(oaiAgent, { agentId: 'inai://agent/weather', name: 'Wea
 const agnoAgent     = new AgnoPlugin({ agentId: 'inai://agent/agno', ... }).wrap(myAgnoAgent);
 const llamaAgent    = new LlamaIndexPlugin({ agentId: 'inai://agent/llama', ... }).wrap(myIndex);
 const smolaAgent    = new SmolagentsPlugin({ agentId: 'inai://agent/smol', ... }).wrap(mySmolAgent);
+
+// Hermes (Nous Research) — use `plugins/hermes_plugin.py` + `inai create agent ... --lang python --framework hermes`
 
 await agent.serve({ port: 6174 });
 ```
@@ -494,6 +503,8 @@ let agent = LlamaIndexPlugin::new().wrap(service, PluginConfig { .. });
 let service = SmolagentsService { base_url: "http://localhost:7860".into(), ..Default::default() };
 let agent = SmolagentsPlugin::new().wrap(service, PluginConfig { .. });
 
+// Hermes (Nous Research) — embed via Python `wrap_hermes()` / `inai create ... --framework hermes` (no Rust SDK)
+
 // CrewAI — HTTP bridge to a FastAPI-wrapped crew
 let mut service = CrewAIService { base_url: "http://localhost:8000".into(), ..Default::default() };
 let plugin = CrewAIPlugin::new();
@@ -536,6 +547,8 @@ var lli_service = lli.LlamaIndexService{ .base_url = "http://localhost:8080" };
 
 // smolagents — Gradio or custom API
 var sma_service = sma.SmolagentsService{ .base_url = "http://localhost:7860" };
+
+// Hermes (Nous Research) — no Zig module; use a Python agent with `wrap_hermes()`
 ```
 
 ---
@@ -1092,7 +1105,7 @@ python run_example.py
 | [docs/mcp.md](docs/mcp.md) | MCP bridge — wrap MCP servers, expose as MCP server |
 | [docs/discovery.md](docs/discovery.md) | Discovery adapters |
 | [docs/libp2p.md](docs/libp2p.md) | P2P networking with libp2p + QUIC |
-| [docs/plugins.md](docs/plugins.md) | Framework adapters — LangGraph, Google ADK, CrewAI, OpenAI, Agno, LlamaIndex, smolagents, MCP |
+| [docs/plugins.md](docs/plugins.md) | Framework adapters — LangGraph, Google ADK, CrewAI, OpenAI, Agno, LlamaIndex, smolagents, Hermes, MCP |
 | [docs/differentiation.md](docs/differentiation.md) | How Inai differs from other frameworks |
 | [docs/vs-a2a.md](docs/vs-a2a.md) | Inai vs A2A — detailed technical comparison |
 

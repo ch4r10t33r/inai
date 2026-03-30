@@ -8,6 +8,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Features
 
+* **plugins:** Hermes (Nous Research) Python adapter (`hermes_plugin`), `wrap_hermes()`, and `inai create --framework hermes` ([a696797](https://github.com/ch4r10t33r/inai/commit/a696797))
 * make libp2p the default discovery mode ([80dc7bb](https://github.com/ch4r10t33r/inai/commit/80dc7bb52fe1b7f8d1d5b0be1d28e6988146e33a))
 
 ## [0.2.0](https://github.com/ch4r10t33r/inai/compare/v0.1.1...v0.2.0) (2026-03-27)

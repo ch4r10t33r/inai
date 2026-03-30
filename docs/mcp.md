@@ -7,7 +7,7 @@ Inai has a two-way bridge with the [Model Context Protocol (MCP)](https://modelc
 | **MCP → Inai** | Any MCP server becomes a Inai agent | `MCPPlugin` |
 | **Inai → MCP** | Any Inai agent becomes an MCP server | `serve_as_mcp()` / `serveAsMcp()` |
 
-This makes Inai the interoperability hub between MCP's vast tool ecosystem (GitHub, filesystem, Slack, databases, web search…) and every agent framework Inai supports (Google ADK, CrewAI, LangGraph, Agno, smolagents, and more).
+This makes Inai the interoperability hub between MCP's vast tool ecosystem (GitHub, filesystem, Slack, databases, web search…) and every agent framework Inai supports (Google ADK, CrewAI, LangGraph, Agno, smolagents, Hermes, and more).
 
 ---
 
