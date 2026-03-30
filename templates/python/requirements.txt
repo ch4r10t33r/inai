@@ -19,3 +19,7 @@ mcp>=1.0.0
 # pip install openai-agents
 # export OPENAI_API_KEY=sk-...
 openai-agents>=0.0.3
+
+# Hermes / Nous Research (optional — only if using HermesPlugin)
+# pip install git+https://github.com/NousResearch/hermes-agent.git
+# export OPENROUTER_API_KEY=...  (see https://hermes-agent.nousresearch.com/)

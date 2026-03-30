@@ -13,6 +13,7 @@ Available plugins:
   Agno           agno_plugin.py            wrap_agno()
   LlamaIndex     llamaindex_plugin.py      wrap_llamaindex()
   smolagents     smolagents_plugin.py      wrap_smolagents()
+  Hermes         hermes_plugin.py          wrap_hermes()
 
 Adding a new framework:
   1. Create  plugins/my_framework_plugin.py
